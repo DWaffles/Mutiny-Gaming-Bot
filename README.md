@@ -15,5 +15,5 @@ MGBot is still under development in a debug status and not production ready.
 ### Dependencies
 
 - [DSharpPlus Nightly Builds](https://github.com/DSharpPlus/DSharpPlus/)
-- SQLite via [Microsoft Entity Framework Core](https://docs.microsoft.com/en-us/ef/
+- SQLite via [Microsoft Entity Framework Core](https://docs.microsoft.com/en-us/ef/)
 
