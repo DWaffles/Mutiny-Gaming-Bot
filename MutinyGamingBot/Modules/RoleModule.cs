@@ -10,62 +10,6 @@ namespace MutinyBot.Modules
     [RequireGuild()]
     public class RoleCommands : MutinyBotModule
     {
-        private DiscordEmbed GetOutDatedErrorEmbed()
-        {
-            return new DiscordEmbedBuilder
-            {
-                Title = "Outdated Command",
-                Description = $"The `user info` command has been depreciated. The command is now just `user`.",
-                Color = new DiscordColor(0xFF0000) // red
-            };
-        }
-        private DiscordEmbed GetOutDatedWarningEmbed()
-        {
-            return new DiscordEmbedBuilder
-            {
-                Title = "Outdated Command",
-                Description = $"After March 21st, 2021 the `user info` command will be depreciated. Please use `user` instead.",
-                Color = new DiscordColor(0xFF0000) // red
-            };
-        }
-        [Command("role")]
-        public async Task UserInformation(CommandContext ctx, string sub, DiscordRole discordRole)
-        {
-            if (DateTime.Now > new DateTime(2021, 3, 21))
-            {
-                await ctx.RespondAsync(embed: GetOutDatedErrorEmbed());
-                return;
-            }
-            else
-            {
-                await ctx.RespondAsync(embed: GetOutDatedWarningEmbed());
-            }
-            if (sub.Equals("info", StringComparison.OrdinalIgnoreCase))
-            {
-                await RoleInformation(ctx, discordRole);
-            }
-            else if (sub.Equals("i", StringComparison.OrdinalIgnoreCase))
-            {
-                await RoleInformation(ctx, discordRole);
-            }
-        }
-        [Command("role")]
-        public async Task UserInformation(CommandContext ctx, string sub, [RemainingText] string roleName)
-        {
-            if (DateTime.Now > new DateTime(2021, 3, 21))
-            {
-                await ctx.RespondAsync(embed: GetOutDatedErrorEmbed());
-                return;
-            }
-            if (sub.Equals("info", StringComparison.OrdinalIgnoreCase))
-            {
-                await RoleInformation(ctx, roleName);
-            }
-            else if (sub.Equals("i", StringComparison.OrdinalIgnoreCase))
-            {
-                await RoleInformation(ctx, roleName);
-            }
-        }
         [Command("role"), Aliases("r")]
         public async Task RoleInformation(CommandContext ctx, DiscordRole discordRole)
         {

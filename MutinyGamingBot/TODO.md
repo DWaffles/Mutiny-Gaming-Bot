@@ -67,3 +67,18 @@
 - Add whitelist user Ids allowing people to add new images and pets
 - Add list of pending animals to be confirmed
 - Add list of valid pets to respond with
+
+## Logging
+
+- Implement consistent logging method through out program
+- Log level definable via config
+- Logg to console and log to file capabilities
+
+## README.md
+
+- Update with how to compile/run
+- Update dependencies with additional NUGET link
+
+## TODO.md
+
+- Use repository issues and project board
