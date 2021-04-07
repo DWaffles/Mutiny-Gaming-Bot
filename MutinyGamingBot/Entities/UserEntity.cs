@@ -1,8 +1,10 @@
 ﻿namespace MutinyBot.Entities
 {
-    public class UserEntity
+    public class UserEntity : DbEntity
     {
+        public ulong UserId { get; set; }
+        public bool Banned { get; set; } = false;
+
         //nationality
-        //banned
     }
 }

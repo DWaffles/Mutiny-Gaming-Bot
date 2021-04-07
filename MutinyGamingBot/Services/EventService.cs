@@ -93,9 +93,9 @@ namespace MutinyBot.Services
                 {
                     await func.Invoke();
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    //Log.Error(ex.ToString());
+                    // Log Exception
                 }
             });
 

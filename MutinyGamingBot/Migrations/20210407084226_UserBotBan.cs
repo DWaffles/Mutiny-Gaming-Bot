@@ -2,7 +2,7 @@
 
 namespace MutinyBot.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class UserBotBan : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -40,6 +40,20 @@ namespace MutinyBot.Migrations
                     table.PrimaryKey("PK_Members", x => x.Id);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    UserId = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    Banned = table.Column<bool>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Guilds_GuildId",
                 table: "Guilds",
@@ -51,6 +65,12 @@ namespace MutinyBot.Migrations
                 table: "Members",
                 columns: new[] { "MemberId", "GuildId" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_UserId",
+                table: "Users",
+                column: "UserId",
+                unique: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -60,6 +80,9 @@ namespace MutinyBot.Migrations
 
             migrationBuilder.DropTable(
                 name: "Members");
+
+            migrationBuilder.DropTable(
+                name: "Users");
         }
     }
 }

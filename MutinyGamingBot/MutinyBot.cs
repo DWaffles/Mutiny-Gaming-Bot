@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MutinyBot.Common;
 using MutinyBot.Database;
+using MutinyBot.Modules.Attributes;
 using MutinyBot.Services;
 using System;
 using System.Collections.Generic;
@@ -27,13 +28,14 @@ namespace MutinyBot
         public MutinyBot()
         {
             Config = new Configuration();
-            Config.ReadConfig();
-            Config.VerifyConfig();
+            if (!Config.ReadConfig())
+                return;
 
             Services = new ServiceCollection()
                 .AddSingleton(this)
                 .AddSingleton(Config)
                 .AddSingleton<Random>()
+                .AddSingleton<IUserService, UserService>()
                 .AddSingleton<IGuildService, GuildService>()
                 .AddSingleton<IEventService, EventService>()
                 .AddSingleton<IMemberService, MemberService>()
@@ -62,13 +64,6 @@ namespace MutinyBot
                 | DiscordIntents.DirectMessageReactions
                 | DiscordIntents.AllUnprivileged
             });
-
-            Client.MessageCreated += async (s, e) =>
-            {
-                if (e.Message.Content.ToLower().StartsWith("ping"))
-                    await e.Message.RespondAsync("pong!");
-
-            };
 
             CommandsNextExtension commands = Client.UseCommandsNext(new CommandsNextConfiguration()
             {
@@ -127,12 +122,12 @@ namespace MutinyBot
                     break;
                 case ChecksFailedException _:
                     List<string> failedChecks = new List<string>();
-                    foreach (var attr in ((ChecksFailedException)e.Exception).Command.ExecutionChecks)
+                    foreach (var attr in ((ChecksFailedException)e.Exception).FailedChecks)
                     {
                         failedChecks.Add(ParseFailedCheck(attr));
                     }
-                    embed.Title = "Access Denied";
-                    embed.Description = $"You do not have the required permissions required to execute this command.\n • {String.Join("\n • ", failedChecks.ToArray())}";
+                    embed.Title = "Command Prechecks Failed";
+                    embed.Description = $"One or more command prechecks have failed:\n • {String.Join("\n • ", failedChecks.ToArray())}";
                     break;
                 default:
                     embed.Title = "Unknown Error Occured";
@@ -145,6 +140,7 @@ namespace MutinyBot
         {
             return attr switch
             {
+                UserNotBannedAttribute _ => "You have been banned from interacted with the bot.",
                 CooldownAttribute _ => "Command is still under cooldown.",
                 RequireOwnerAttribute _ => "Only the owner of the bot can use that command.",
                 RequirePermissionsAttribute _ => "You don't have permission to do that.",

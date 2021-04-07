@@ -34,6 +34,28 @@ namespace MutinyBot.Modules
             }
             await ctx.RespondAsync(message);
         }
+        [Command("botban"), Description("Bans the user from interacting with the bot.")]
+        public async Task BotBanUser(CommandContext ctx, DiscordUser user)
+        {
+            await ctx.TriggerTypingAsync();
+
+            var userEntity = await UserService.GetOrCreateUserAsync(user.Id);
+            userEntity.Banned = true;
+            await UserService.UpdateUserAsync(userEntity);
+
+            await ctx.RespondAsync($"User has been added to the ban list.");
+        }
+        [Command("unbotban"), Description("Un-Bans the user from interacting with the bot.")]
+        public async Task UnBotBanUser(CommandContext ctx, DiscordUser user)
+        {
+            await ctx.TriggerTypingAsync();
+
+            var userEntity = await UserService.GetOrCreateUserAsync(user.Id);
+            userEntity.Banned = false;
+            await UserService.UpdateUserAsync(userEntity);
+
+            await ctx.RespondAsync($"User has been removed from the ban list.");
+        }
         // Change to allow choosing of activity type
         [Command("status"), Aliases("s"), Description("Sets the bot status.")]
         public async Task Status(CommandContext ctx, [RemainingText, Description("Status to set.")] string status)

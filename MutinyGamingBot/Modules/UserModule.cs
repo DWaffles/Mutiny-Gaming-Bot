@@ -1,6 +1,7 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using MutinyBot.Modules.Attributes;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -89,6 +90,28 @@ namespace MutinyBot.Modules
                     await ctx.RespondAsync(embed: embed);
                 }
             }
+        }
+        [Command("profile"), Aliases("pfp")]
+        public async Task UserProfile(CommandContext ctx, DiscordMember discordMember = null)
+        {
+            await ctx.TriggerTypingAsync();
+
+            if (discordMember == null)
+            {
+                discordMember = ctx.Member;
+            }
+
+            var embed = new DiscordEmbedBuilder()
+                .WithColor(new DiscordColor(MutinyBot.Config.HexCode))
+                .WithImageUrl(discordMember.AvatarUrl);
+            
+
+            await ctx.RespondAsync(embed: embed);
+        }
+        [Command("profile")]
+        public async Task UserProfile(CommandContext ctx, [RemainingText] string memberName)
+        {
+            await ctx.TriggerTypingAsync();
         }
     }
 }

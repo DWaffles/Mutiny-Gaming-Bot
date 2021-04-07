@@ -9,10 +9,15 @@ namespace MutinyBot.Database
 {
     public class MutinyBotDbContext : DbContext
     {
+        public DbSet<UserEntity> Users { get; set; }
         public DbSet<GuildEntity> Guilds { get; set; }
         public DbSet<MemberEntity> Members { get; set; }
         public MutinyBot MutinyBot { protected get; set; }
-        public MutinyBotDbContext() {}
+        public MutinyBotDbContext() 
+        {
+            if(Database.GetPendingMigrations().Any())
+                Database.Migrate();
+        }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             Console.WriteLine("DATABASE");
@@ -30,6 +35,10 @@ namespace MutinyBot.Database
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            //UserEntity
+            _ = modelBuilder.Entity<UserEntity>().HasIndex(x => x.UserId).IsUnique();
+            _ = modelBuilder.Entity<UserEntity>().Property(x => x.UserId).IsRequired();
+
             //GuildEntity
             _ = modelBuilder.Entity<GuildEntity>().HasIndex(x => x.GuildId).IsUnique();
             _ = modelBuilder.Entity<GuildEntity>().Property(x => x.GuildId).IsRequired();

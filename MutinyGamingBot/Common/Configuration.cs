@@ -20,7 +20,7 @@ namespace MutinyBot.Common
         public bool Debug { get; private set; } = false;
 
         //owner server id?
-        public void ReadConfig()
+        public bool ReadConfig()
         {
             string configName = "config.json";
             if (!File.Exists(configName))
@@ -29,7 +29,7 @@ namespace MutinyBot.Common
                 File.WriteAllText(configName, template, new UTF8Encoding(false));
                 Console.WriteLine($"Missing {configName}, created template config file.");
                 Console.ReadKey();
-                return;
+                return false;
             }
 
             string json = File.ReadAllText(configName, new UTF8Encoding(false));
@@ -43,13 +43,16 @@ namespace MutinyBot.Common
             // Updating config with new fields
             json = JsonConvert.SerializeObject(this, Formatting.Indented);
             File.WriteAllText(configName, json, new UTF8Encoding(false));
+
+            return VerifyConfig();
+                
         }
-        public void VerifyConfig()
+        private bool VerifyConfig()
         {
-            if (string.IsNullOrEmpty(Token))
-                throw new NullReferenceException("Please set the token in config.json");
-            if (CommandPrefixes.Length == 0)
-                throw new NullReferenceException("Please set a prefix in config.json");
+            if (string.IsNullOrEmpty(Token) || CommandPrefixes.Length == 0)
+                return false;
+            else
+                return true;
         }
     }
 }
