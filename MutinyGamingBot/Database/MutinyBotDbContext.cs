@@ -22,7 +22,7 @@ namespace MutinyBot.Database
         {
             Console.WriteLine("DATABASE");
 
-            string dbPath = Path.Combine(Directory.GetCurrentDirectory(), "data");
+            string dbPath = Path.Combine(AppContext.BaseDirectory, "data");
             Console.WriteLine(dbPath);
             if (!Directory.Exists(dbPath))
             {
@@ -31,7 +31,7 @@ namespace MutinyBot.Database
             string dbFilePath = Path.Combine(dbPath, "MutinyBotDatabase.sqlite.db");
 
             _ = optionsBuilder.UseSqlite($"Filename={dbFilePath}");
-            _ = optionsBuilder.LogTo(Console.WriteLine, LogLevel.Information);
+            _ = optionsBuilder.LogTo(Console.WriteLine, LogLevel.Warning);
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

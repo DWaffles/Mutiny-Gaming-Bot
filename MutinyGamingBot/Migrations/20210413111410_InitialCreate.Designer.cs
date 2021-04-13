@@ -8,8 +8,8 @@ using MutinyBot.Database;
 namespace MutinyBot.Migrations
 {
     [DbContext(typeof(MutinyBotDbContext))]
-    [Migration("20210407084226_UserBotBan")]
-    partial class UserBotBan
+    [Migration("20210413111410_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -92,7 +92,7 @@ namespace MutinyBot.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("UserEntity");
                 });
 #pragma warning restore 612, 618
         }

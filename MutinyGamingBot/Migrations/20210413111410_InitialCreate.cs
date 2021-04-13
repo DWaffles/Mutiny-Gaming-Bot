@@ -2,7 +2,7 @@
 
 namespace MutinyBot.Migrations
 {
-    public partial class UserBotBan : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -41,7 +41,7 @@ namespace MutinyBot.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "UserEntity",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
@@ -51,7 +51,7 @@ namespace MutinyBot.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.PrimaryKey("PK_UserEntity", x => x.Id);
                 });
 
             migrationBuilder.CreateIndex(
@@ -67,8 +67,8 @@ namespace MutinyBot.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_UserId",
-                table: "Users",
+                name: "IX_UserEntity_UserId",
+                table: "UserEntity",
                 column: "UserId",
                 unique: true);
         }
@@ -82,7 +82,7 @@ namespace MutinyBot.Migrations
                 name: "Members");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "UserEntity");
         }
     }
 }
