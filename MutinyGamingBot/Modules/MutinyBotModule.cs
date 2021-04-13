@@ -9,6 +9,7 @@ namespace MutinyBot.Modules
     [UserNotBanned]
     public class MutinyBotModule : BaseCommandModule
     {
+        public Random Rng { protected get; set; }
         public MutinyBot MutinyBot { protected get; set; }
         public IUserService UserService { protected get; set; }
         public IGuildService GuildService { protected get; set; }

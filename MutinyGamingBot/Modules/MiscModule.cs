@@ -13,6 +13,17 @@ namespace MutinyBot.Modules
             await ctx.TriggerTypingAsync();
             await ctx.RespondAsync($"Pong: {ctx.Client.Ping}ms");
         }
+        [Command("coin"), Aliases("coinflip")]
+        [Description("Flips a digital coin.")]
+        public async Task CoinFlip(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+            int result = Rng.Next(2);
+            if (result == 0) //heads
+                await ctx.RespondAsync($"Heads!");
+            else //tails
+                await ctx.RespondAsync($"Tails, or something.");
+        }
         //disclaimer
     }
 }
