@@ -165,7 +165,8 @@ namespace MutinyBot.Services
         private bool RoleDictionaryOutofDate(List<DiscordRole> memberRoles, Dictionary<ulong, bool> entityDictionary)
         {
             var tmpList = entityDictionary.Where(pair => pair.Value == true).Select(pair => pair.Key);
-            if (memberRoles.Select(role => role.Id).Except(tmpList).Any())
+            var roleIdList = memberRoles.Select(role => role.Id);
+            if (roleIdList.Except(tmpList).Any() || tmpList.Except(roleIdList).Any())
                 return true;
             else
                 return false;
