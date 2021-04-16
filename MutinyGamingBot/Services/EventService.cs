@@ -5,7 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MutinyBot.Entities;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -52,7 +54,6 @@ namespace MutinyBot.Services
         }
         private async Task OnGuildAvailable(DiscordClient client, GuildCreateEventArgs e)
         {
-            //UpdateGuild(e.Guild);
             await UpdateGuild(e.Guild);
             //await RunTaskAsync(UpdateGuild(e.Guild));
 
@@ -103,56 +104,78 @@ namespace MutinyBot.Services
         }
         private async Task UpdateGuild(DiscordGuild guild)
         {
+            Stopwatch stopWatch = new Stopwatch();
+            if (MutinyBot.Config.Debug)
+            {
+                stopWatch.Start();
+            }
+
+            Console.WriteLine($"Updating {guild.Name}, ID: {guild.Id}, MemberCount: {guild.MemberCount}");
+
             IGuildService guildService = MutinyBot.Services.GetService<IGuildService>();
             IMemberService memberService = MutinyBot.Services.GetService<IMemberService>();
 
             await guildService.GetOrCreateGuildAsync(guild.Id);
 
             var memberList = await guild.GetAllMembersAsync();
-
-            if (MutinyBot.Config.Debug)
-            {
-                Console.WriteLine($"Updating {guild.Name}, ID: {guild.Id}, MemberCount: {guild.MemberCount}");
-            }
+            var entityList = memberService.GetAllMembers(guild.Id);
+            var updateMemberList = new List<MemberEntity>();
+            var newMemberList = new List<DiscordMember>();
 
             foreach (DiscordMember member in memberList)
             {
-                MemberEntity memberEntity = await memberService.GetOrCreateMemberAsync(member);
+               MemberEntity memberEntity = entityList.SingleOrDefault(x => x.MemberId == member.Id);
+               if (memberEntity != null)
+               {
+                   if (RoleDictionaryOutofDate(member.Roles.ToList(), memberEntity.RoleDictionary))
+                   {
+                       if (MutinyBot.Config.Debug)
+                           Console.WriteLine("CHANGED");
 
-                Dictionary<ulong, bool> tmpDict = new Dictionary<ulong, bool>();
-                foreach (var role in member.Roles)
-                {
-                    tmpDict.Add(role.Id, true);
-                }
-                if (tmpDict.Count == memberEntity.RoleDictionary.Count && !tmpDict.Except(memberEntity.RoleDictionary).Any())
-                {
-                    if (MutinyBot.Config.Debug)
-                        Console.WriteLine("NO CHANGE");
-                }
-                else
-                {
-                    if (MutinyBot.Config.Debug)
-                        Console.WriteLine("CHANGED");
-                    memberEntity.UpdateEntity(member);
-                    await memberService.UpdateMemberAsync(memberEntity);
-                }
+                       memberEntity.UpdateEntity(member);
+                       updateMemberList.Add(memberEntity);
+                   }
+               }
+               else
+               {
+                   newMemberList.Add(member);
+               }
             }
+            if(updateMemberList.Any())
+            {
+                await memberService.UpdateMembersAsync(updateMemberList);
+            }
+            foreach (var member in newMemberList)
+            {
+                _ = await memberService.GetOrCreateMemberAsync(member);
+            }
+
+            Console.WriteLine($"END UPDATE");
+
             if (MutinyBot.Config.Debug)
-                Console.WriteLine($"END UPDATE");
+            {
+                stopWatch.Stop();
+                TimeSpan ts = stopWatch.Elapsed;
+                string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}",
+                ts.Hours, ts.Minutes, ts.Seconds,
+                ts.Milliseconds / 10);
+                Console.WriteLine("RunTime: " + elapsedTime);
+            }
+        }
+        private bool RoleDictionaryOutofDate(List<DiscordRole> memberRoles, Dictionary<ulong, bool> entityDictionary)
+        {
+            var tmpList = entityDictionary.Where(pair => pair.Value == true).Select(pair => pair.Key);
+            if (memberRoles.Select(role => role.Id).Except(tmpList).Any())
+                return true;
+            else
+                return false;
         }
         private async Task UpdateMember(DiscordMember member)
         {
             IMemberService memberService = MutinyBot.Services.GetService<IMemberService>();
             MemberEntity memberEntity = await memberService.GetOrCreateMemberAsync(member);
 
-            Dictionary<ulong, bool> tmpDict = new Dictionary<ulong, bool>();
-            foreach (var role in member.Roles)
-            {
-                tmpDict.Add(role.Id, true);
-            }
-            if (tmpDict.Count == memberEntity.RoleDictionary.Count && !tmpDict.Except(memberEntity.RoleDictionary).Any())
-            { }
-            else
+            if(RoleDictionaryOutofDate(member.Roles.ToList(), memberEntity.RoleDictionary))
             {
                 memberEntity.UpdateEntity(member);
                 await memberService.UpdateMemberAsync(memberEntity);
@@ -207,6 +230,8 @@ namespace MutinyBot.Services
                     await guildService.UpdateGuildAsync(guildEntity);
                 }
             }
+            memberEntity.UpdateEntity(member);
+            await memberService.UpdateMemberAsync(memberEntity);
         }
     }
 }

@@ -44,8 +44,6 @@
 
 ### MemeModule.cs
 
-- Add Anglo Tea Chart
-
 ### MutinyGuildModule.cs
 
 - Implement traingings/instructor command
@@ -58,7 +56,6 @@
 
 ### UserModule.cs
 
-- Use Humanize for date time
 - Implement salary field
 	- "Take it up with my superior" - Kelsen
 	- "I am the community -" - Prius
@@ -69,7 +66,6 @@
 
 - Fix problem regarding OnGuildAvailable() and OnGuildJoined() taking more than 1 second from UpdateGuild() for guilds with large member counts
 	- Change UpdateGuild() to use transaction instead?
-	- Added new Db command, GetGuildUsers() to reduce calls to db?
 
 ### GuildService.cs
 
@@ -92,7 +88,7 @@
 
 ## MutinyBot.cs
 
-- Tidy up command errored and make it not output on a banned user
+- Tidy up command errored
 
 ## Logging
 

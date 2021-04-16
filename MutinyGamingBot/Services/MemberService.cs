@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using MutinyBot.Database;
 using MutinyBot.Entities;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MutinyBot.Services
@@ -10,8 +12,10 @@ namespace MutinyBot.Services
     public interface IMemberService
     {
         Task<MemberEntity> GetOrCreateMemberAsync(DiscordMember discordMember);
+        List<MemberEntity> GetAllMembers(ulong guildId);
         Task<MemberEntity> GetNewMemberJoinedAsync(DiscordMember discordMember);
         Task UpdateMemberAsync(MemberEntity member);
+        Task UpdateMembersAsync(List<MemberEntity> memberList);
         Task RemoveMemberAsync(ulong guildId, ulong memberId);
     }
     public class MemberService : IMemberService
@@ -33,11 +37,6 @@ namespace MutinyBot.Services
             }
             return member;
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="discordMember">The DiscordMember object of the member who has joined.</param>
-        /// <returns></returns>
         public async Task<MemberEntity> GetNewMemberJoinedAsync(DiscordMember discordMember)
         {
             MemberEntity member = await dbContext.Members.SingleOrDefaultAsync(x => x.MemberId == discordMember.Id && x.GuildId == discordMember.Guild.Id);
@@ -54,9 +53,18 @@ namespace MutinyBot.Services
             }
             return member;
         }
+        public List<MemberEntity> GetAllMembers(ulong guildId)
+        {
+            return dbContext.Members.Where(member => member.GuildId == guildId).ToList();
+        }
         public Task UpdateMemberAsync(MemberEntity memberEntity)
         {
             _ = dbContext.Members.Update(memberEntity);
+            return dbContext.SaveChangesAsync();
+        }
+        public Task UpdateMembersAsync(List<MemberEntity> memberList)
+        {
+            dbContext.Members.UpdateRange(memberList);
             return dbContext.SaveChangesAsync();
         }
         public async Task RemoveMemberAsync(ulong guildId, ulong memberId)

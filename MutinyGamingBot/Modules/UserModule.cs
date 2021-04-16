@@ -1,8 +1,11 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Humanizer;
+using Humanizer.Localisation;
 using MutinyBot.Modules.Attributes;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -25,26 +28,18 @@ namespace MutinyBot.Modules
             string dateTimeJoined = discordMember.JoinedAt.ToUniversalTime().ToString(dateTimeFormat);
             string dateTimeCreated = discordMember.CreationTimestamp.ToUniversalTime().ToString(dateTimeFormat);
 
-            string joinDuration;
-            TimeSpan joinTimeSpan = DateTime.Now - discordMember.JoinedAt;
-            if (joinTimeSpan.Days > 0)
-                joinDuration = $"{joinTimeSpan.Days} days ago";
-            else if (joinTimeSpan.Hours > 1)
-                joinDuration = $"{joinTimeSpan.Hours} hours ago";
-            else
-                joinDuration = $"{joinTimeSpan.Minutes} minutes ago";
-
-            string description = $"{discordMember.Mention} joined {ctx.Guild.Name} {joinDuration}.";
+            string joinDuration = (DateTime.Now - discordMember.JoinedAt).Humanize(3, maxUnit: TimeUnit.Year, minUnit: TimeUnit.Minute);
+            string description = $"{discordMember.Mention} joined {ctx.Guild.Name} {joinDuration} ago.";
 
             var embed = new DiscordEmbedBuilder()
                     .WithAuthor($"{discordMember.DisplayName} User Information", iconUrl: $"{discordMember.AvatarUrl}")
                     .WithDescription(description)
                     .AddField("Created", dateTimeCreated, true)
                     .AddField("Joined", dateTimeJoined, true)
-                    .WithFooter("Times are in UTC using 24 hour time. The AM/PM modifier is for Americans.")
+                    .WithFooter("Times are UTC using 24 hour time. AM/PM modifier for Americans.")
                     .WithColor(new DiscordColor(MutinyBot.Config.HexCode));
 
-            if (discordMember.Roles.Count() > 0)
+            if (discordMember.Roles.Any())
             {
                 var orderedRoles = discordMember.Roles.ToList().OrderByDescending(x => x.Position);
                 var currentRoles = String.Join(", ", orderedRoles.Select(x => x.Mention));
@@ -53,7 +48,7 @@ namespace MutinyBot.Modules
 
             var memberEntity = await MemberService.GetOrCreateMemberAsync(discordMember);
             var pastRoles = memberEntity.RoleDictionary.Where(x => x.Value == false).Select(x => "<@&" + x.Key + ">"); //All Past Roles
-            if (pastRoles.Count() > 0)
+            if (pastRoles.Any())
             {
                 embed.AddField($"Previous Roles ({pastRoles.Count()})", String.Join(", ", pastRoles));
             }
@@ -62,33 +57,15 @@ namespace MutinyBot.Modules
         [Command("user")]
         public async Task UserInformation(CommandContext ctx, [RemainingText] string memberName)
         {
-            var members = ctx.Guild.Members.Values;
-            if (members.Count() != ctx.Guild.MemberCount)
-                members = await ctx.Guild.GetAllMembersAsync();
-
-            var foundMember = members.FirstOrDefault(member => member.DisplayName.Equals(memberName, StringComparison.OrdinalIgnoreCase));
+            var members = await ctx.Guild.GetAllMembersAsync();
+            var foundMember = FindMember(members.ToList(), memberName);
             if (foundMember != null)
             {
                 await UserInformation(ctx, foundMember);
             }
             else
             {
-                foundMember = members.FirstOrDefault(member => member.Username.Equals(memberName, StringComparison.OrdinalIgnoreCase));
-                if (foundMember != null)
-                {
-                    await UserInformation(ctx, foundMember);
-                }
-                else
-                {
-                    var embed = new DiscordEmbedBuilder
-                    {
-                        Title = "User Not Found",
-                        Description = $"No such user with that nickname or username was found.",
-                        Color = new DiscordColor(0xFF0000) // red
-                    };
-
-                    await ctx.RespondAsync(embed: embed);
-                }
+                await ctx.RespondAsync(embed: UserNotFoundEmbed());
             }
         }
         [Command("profile"), Aliases("pfp")]
@@ -111,7 +88,30 @@ namespace MutinyBot.Modules
         [Command("profile")]
         public async Task UserProfile(CommandContext ctx, [RemainingText] string memberName)
         {
-            await ctx.TriggerTypingAsync();
+            var members = await ctx.Guild.GetAllMembersAsync();
+            var foundMember = FindMember(members.ToList(), memberName);
+            if (foundMember != null)
+            {
+                await UserProfile(ctx, foundMember);
+            }
+            else
+            {
+                await ctx.RespondAsync(embed: UserNotFoundEmbed());
+            }
+        }
+        private DiscordMember FindMember(List<DiscordMember> members, string memberName)
+        {
+            var foundMember = members.FirstOrDefault(member => member.DisplayName.Equals(memberName, StringComparison.OrdinalIgnoreCase));
+            return foundMember ?? members.FirstOrDefault(member => member.Username.Equals(memberName, StringComparison.OrdinalIgnoreCase));
+        }
+        private DiscordEmbed UserNotFoundEmbed()
+        {
+            return new DiscordEmbedBuilder
+            {
+                Title = "User Not Found",
+                Description = $"No such user with that nickname or username was found.",
+                Color = new DiscordColor(0xFF0000) // red
+            };
         }
     }
 }

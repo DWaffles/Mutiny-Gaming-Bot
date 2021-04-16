@@ -22,7 +22,7 @@ namespace MutinyBot.Database
         {
             Console.WriteLine("DATABASE");
 
-            string dbPath = Path.Combine(AppContext.BaseDirectory, "data");
+            string dbPath = Path.Combine(Directory.GetCurrentDirectory(), "data");
             Console.WriteLine(dbPath);
             if (!Directory.Exists(dbPath))
             {

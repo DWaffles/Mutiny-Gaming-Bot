@@ -16,7 +16,6 @@ namespace MutinyBot.Modules
         [Command("role"), Aliases("r")]
         public async Task RoleInformation(CommandContext ctx, DiscordRole discordRole)
         {
-            Console.WriteLine("ROLE STRING");
             string authorName = "Role Information";
             string authorUrl = $"{ctx.Guild.IconUrl}";
 
@@ -37,7 +36,7 @@ namespace MutinyBot.Modules
 
             int maxCount = 20;
 
-            if (currentHolders.Count > 0)
+            if (currentHolders.Any())
             {
                 if(currentHolders.Count <= maxCount)
                 {
@@ -97,7 +96,6 @@ namespace MutinyBot.Modules
         [Command("role")]
         public async Task RoleInformation(CommandContext ctx, [RemainingText] string roleName)
         {
-            Console.WriteLine("ROLE STRING");
             var foundRole = ctx.Guild.Roles.Values.FirstOrDefault(role => role.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
             if (foundRole != null)
             {

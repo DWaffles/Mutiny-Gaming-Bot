@@ -124,10 +124,13 @@ namespace MutinyBot
                     List<string> failedChecks = new List<string>();
                     foreach (var attr in ((ChecksFailedException)e.Exception).FailedChecks)
                     {
-                        failedChecks.Add(ParseFailedCheck(attr));
+                        if (attr is UserNotBannedAttribute)
+                            return;
+                        else
+                            failedChecks.Add(ParseFailedCheck(attr));
                     }
                     embed.Title = "Command Prechecks Failed";
-                    embed.Description = $"One or more command prechecks have failed:\n • {String.Join("\n • ", failedChecks.ToArray())}";
+                    embed.Description = $"One or more command prechecks have failed:\n • {String.Join("\n • ", failedChecks)}";
                     break;
                 default:
                     embed.Title = "Unknown Error Occured";
@@ -140,7 +143,7 @@ namespace MutinyBot
         {
             return attr switch
             {
-                UserNotBannedAttribute _ => "You have been banned from interacted with the bot.",
+                //UserNotBannedAttribute _ => "You have been banned from interacted with the bot.",
                 CooldownAttribute _ => "Command is still under cooldown.",
                 RequireOwnerAttribute _ => "Only the owner of the bot can use that command.",
                 RequirePermissionsAttribute _ => "You don't have permission to do that.",
