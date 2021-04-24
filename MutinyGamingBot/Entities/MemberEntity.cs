@@ -9,6 +9,7 @@ namespace MutinyBot.Entities
         public ulong MemberId { get; set; }
         public ulong GuildId { get; set; }
         public int TimesJoined { get; set; } = 1;
+        public int TimesMuted { get; set; }
         public bool CurrentMember { get; set; } = true;
         public Dictionary<ulong, bool> RoleDictionary { get; set; } = new Dictionary<ulong, bool>();
         public MemberEntity() { }

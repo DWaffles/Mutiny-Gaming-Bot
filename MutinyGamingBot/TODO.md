@@ -42,6 +42,10 @@
 
 ### CreatorModule.cs
 
+### Implement GuildModule.cs
+
+- Add guild info command
+
 ### MemeModule.cs
 
 ### MutinyGuildModule.cs

@@ -67,7 +67,7 @@ namespace MutinyBot.Services
             dbContext.Members.UpdateRange(memberList);
             return dbContext.SaveChangesAsync();
         }
-        public async Task RemoveMemberAsync(ulong guildId, ulong memberId)
+        public Task RemoveMemberAsync(ulong guildId, ulong memberId)
         {
             throw new NotImplementedException();
         }

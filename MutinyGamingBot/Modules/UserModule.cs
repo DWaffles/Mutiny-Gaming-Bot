@@ -3,7 +3,6 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using Humanizer;
 using Humanizer.Localisation;
-using MutinyBot.Modules.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,7 +80,6 @@ namespace MutinyBot.Modules
             var embed = new DiscordEmbedBuilder()
                 .WithColor(new DiscordColor(MutinyBot.Config.HexCode))
                 .WithImageUrl(discordMember.AvatarUrl);
-            
 
             await ctx.RespondAsync(embed: embed);
         }

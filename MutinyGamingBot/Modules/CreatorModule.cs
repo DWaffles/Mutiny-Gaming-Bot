@@ -1,8 +1,13 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using Humanizer;
+using MutinyBot.Common;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace MutinyBot.Modules
@@ -64,39 +69,85 @@ namespace MutinyBot.Modules
             await ctx.Client.UpdateStatusAsync(new DiscordActivity(status));
             await ctx.RespondAsync($"Status set to {status}");
         }
-        //set activity
+        [Command("export")]
+        public async Task ExportMembers(CommandContext ctx, string fileName = "output.csv")
+        {
+            await ctx.TriggerTypingAsync();
+
+            if (!fileName.EndsWith(".csv"))
+                fileName += ".csv";
+
+            string output = "Discord Username, Guild Nickname, User Id, Joined, Num Roles, Current Roles";
+
+            var members = await ctx.Guild.GetAllMembersAsync();
+            List<string> userStrings = new List<string>(); //ConcurrentBag?
+            foreach (var member in members) //Parallel.ForEach?
+            {
+                string userString = "";
+                //Username
+                userString = UtilityHelpers.SanitizeString(member.Username) + ",";
+                //Nickname
+                userString = UtilityHelpers.SanitizeString(member.Nickname ?? member.Username) + ",";
+                //UserId
+                userString += member.Id + ",";
+                //Joined
+                userString += member.JoinedAt.UtcDateTime.ToString("g") + ",";
+                //Num Roles
+                userString += member.Roles.Count() + ",";
+                //Current Roles
+                var orderedRoles = member.Roles.ToList().OrderByDescending(x => x.Position);
+                userString += String.Join("|", orderedRoles.Select(x => UtilityHelpers.SanitizeString(x.Name)));
+                //Previous Roles?
+
+                userStrings.Add(userString);
+            }
+            output += "\n" + String.Join("\n", userStrings);
+
+            Console.WriteLine($"Writing to {fileName}.");
+            File.WriteAllText(fileName, output, new UTF8Encoding(false));
+            Console.WriteLine($"Outputted matched mods to {fileName}.");
+        }
     }
     [Group("debug"), Aliases("d")]
     [Description("Debug commands."), Hidden, RequireOwner]
     public class DebugModule : MutinyBotModule
     {
-        [Command("membercache"), Aliases("mc")]
-        public async Task Debug(CommandContext ctx)
+        [Command("mute")]
+        public async Task MuteDebug(CommandContext ctx, DiscordMember member, TimeSpan muteTime, string reason = null)
         {
-            string test = $"Members Count: {ctx.Guild.Members.Count}";
-            foreach (var member in ctx.Guild.Members.Values)
-            {
-                test += $"\n{member.DisplayName}\t{member.Username}";
-            }
-            await ctx.RespondAsync(test);
+            await ctx.TriggerTypingAsync();
 
-            var list = await ctx.Guild.GetAllMembersAsync();
-            test = $"Members Count: {list.Count}";
-            foreach (var member in list)
+            string response = String.Empty;
+
+            response = String.Join("\n", response, $"Member: {member.Mention}");
+
+            if (String.IsNullOrEmpty(reason))
+                response = String.Join("\n", response, $"Reason: None given");
+            else
+                response = String.Join("\n", response, $"Reason: {reason}");
+
+            var guildEntity = await GuildService.GetOrCreateGuildAsync(ctx.Guild.Id);
+
+            DiscordRole muteRole = ctx.Guild.GetRole(guildEntity.MuteRoleId);
+            if (muteRole is null)
+                response = String.Join("\n", response, $"Mute Role: Not Set");
+            else
             {
-                test += $"\n{member.DisplayName}\t{member.Username}\t{member.Roles.Count()}";
+                response = String.Join("\n", response, $"Mute Role: {muteRole.Mention}");
+                response = String.Join("\n", response, $"Mute Role Position: {muteRole.Position}");
             }
-            await ctx.RespondAsync(test);
-        }
-        [Command("rtext"), Aliases("rt")]
-        public async Task RemainingText(CommandContext ctx, [RemainingText] string text)
-        {
-            await ctx.RespondAsync(text);
-        }
-        [Command("add")]
-        public async Task AddNumber(CommandContext ctx, int num1, int num2)
-        {
-            await ctx.RespondAsync((num1 + num2).ToString());
+
+            DiscordChannel modChannel = ctx.Guild.GetChannel(guildEntity.ModerationLogChannelId);
+            if (modChannel is null)
+                response = String.Join("\n", response, $"Moderation Channel: Not Set");
+            else
+                response = String.Join("\n", response, $"Moderation Channel: {modChannel.Mention}");
+
+            response = String.Join("\n", response, $"Time Period: {muteTime.Humanize()}");
+
+            response = String.Join("\n", response, $"Bot Highest Role Position: {ctx.Guild.CurrentMember.Roles.Max(role => role.Position)}");
+
+            await ctx.RespondAsync(response);
         }
     }
 }

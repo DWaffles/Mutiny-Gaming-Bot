@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MutinyBot.Entities;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -31,12 +30,16 @@ namespace MutinyBot.Services
                 Console.WriteLine("EVENTSERVICE INIT");
             MutinyBot.Client.Ready += OnReady;
             MutinyBot.Client.ClientErrored += OnClientError;
+
+            MutinyBot.Client.MessageCreated += Client_MessageCreated;
+
+            MutinyBot.Client.GuildDownloadCompleted += OnGuildsCompleted;
             MutinyBot.Client.GuildAvailable += OnGuildAvailable;
             MutinyBot.Client.GuildCreated += OnGuildJoined;
+
             MutinyBot.Client.GuildMemberUpdated += OnGuildMemberUpdated;
             MutinyBot.Client.GuildMemberAdded += OnGuildMemberAdded;
             MutinyBot.Client.GuildMemberRemoved += OnGuildMemberRemoved;
-            MutinyBot.Client.MessageCreated += Client_MessageCreated;
         }
         private Task OnReady(DiscordClient client, ReadyEventArgs e)
         {
@@ -52,35 +55,41 @@ namespace MutinyBot.Services
         {
             return Task.CompletedTask;
         }
+        private Task OnGuildsCompleted(DiscordClient client, GuildDownloadCompletedEventArgs e)
+        {
+            //await UpdateGuilds();
+            client.Logger.LogInformation(new EventId(0, "GuildAll"), $"All guild's available and processed");
+            return Task.CompletedTask;
+        }
         private async Task OnGuildAvailable(DiscordClient client, GuildCreateEventArgs e)
         {
-            await UpdateGuild(e.Guild);
+            await UpdateGuildAsync(e.Guild);
             //await RunTaskAsync(UpdateGuild(e.Guild));
 
             client.Logger.LogInformation(new EventId(0, "GuildReady"), $"Guild available: {e.Guild.Name}. ID: {e.Guild.Id}");
         }
         private async Task OnGuildJoined(DiscordClient client, GuildCreateEventArgs e)
         {
-            await UpdateGuild(e.Guild);
+            await UpdateGuildAsync(e.Guild);
 
             client.Logger.LogInformation(new EventId(0, "GuildJoined"), $"Guild joined: {e.Guild.Name}. ID: {e.Guild.Id}");
         }
         private async Task OnGuildMemberUpdated(DiscordClient client, GuildMemberUpdateEventArgs e)
         {
-            await UpdateMember(e.Member);
+            await UpdateMemberAsync(e.Member);
 
             client.Logger.LogInformation(new EventId(0, "MemberUpdated"), $"Member updated in: {e.Guild.Name}. ID: {e.Guild.Id}");
         }
         private Task OnGuildMemberAdded(DiscordClient client, GuildMemberAddEventArgs e)
         {
-            RunTaskAsync(NewMember(e.Guild, e.Member));
+            RunTaskAsync(NewMemberAsync(e.Guild, e.Member));
 
             client.Logger.LogInformation(new EventId(0, "MemberAdded"), $"Member joined in: {e.Guild.Name}. ID: {e.Guild.Id}");
             return Task.CompletedTask;
         }
-        private Task OnGuildMemberRemoved(DiscordClient client, GuildMemberRemoveEventArgs e)
+        private async Task OnGuildMemberRemoved(DiscordClient client, GuildMemberRemoveEventArgs e)
         {
-            return Task.CompletedTask;
+            await UpdateMemberRemovedAsync(e.Member);
         }
 
         //
@@ -102,9 +111,9 @@ namespace MutinyBot.Services
 
             return Task.CompletedTask;
         }
-        private async Task UpdateGuild(DiscordGuild guild)
+        private async Task UpdateGuildAsync(DiscordGuild guild)
         {
-            Stopwatch stopWatch = new Stopwatch();
+            Stopwatch stopWatch = new();
             if (MutinyBot.Config.Debug)
             {
                 stopWatch.Start();
@@ -124,24 +133,24 @@ namespace MutinyBot.Services
 
             foreach (DiscordMember member in memberList)
             {
-               MemberEntity memberEntity = entityList.SingleOrDefault(x => x.MemberId == member.Id);
-               if (memberEntity != null)
-               {
-                   if (RoleDictionaryOutofDate(member.Roles.ToList(), memberEntity.RoleDictionary))
-                   {
-                       if (MutinyBot.Config.Debug)
-                           Console.WriteLine("CHANGED");
+                MemberEntity memberEntity = entityList.SingleOrDefault(x => x.MemberId == member.Id);
+                if (memberEntity != null)
+                {
+                    if (RoleDictionaryOutofDate(member.Roles.ToList(), memberEntity.RoleDictionary))
+                    {
+                        if (MutinyBot.Config.Debug)
+                            Console.WriteLine("CHANGED");
 
-                       memberEntity.UpdateEntity(member);
-                       updateMemberList.Add(memberEntity);
-                   }
-               }
-               else
-               {
-                   newMemberList.Add(member);
-               }
+                        memberEntity.UpdateEntity(member);
+                        updateMemberList.Add(memberEntity);
+                    }
+                }
+                else
+                {
+                    newMemberList.Add(member);
+                }
             }
-            if(updateMemberList.Any())
+            if (updateMemberList.Any())
             {
                 await memberService.UpdateMembersAsync(updateMemberList);
             }
@@ -171,18 +180,26 @@ namespace MutinyBot.Services
             else
                 return false;
         }
-        private async Task UpdateMember(DiscordMember member)
+        private async Task UpdateMemberAsync(DiscordMember member)
         {
             IMemberService memberService = MutinyBot.Services.GetService<IMemberService>();
             MemberEntity memberEntity = await memberService.GetOrCreateMemberAsync(member);
 
-            if(RoleDictionaryOutofDate(member.Roles.ToList(), memberEntity.RoleDictionary))
+            if (RoleDictionaryOutofDate(member.Roles.ToList(), memberEntity.RoleDictionary))
             {
                 memberEntity.UpdateEntity(member);
                 await memberService.UpdateMemberAsync(memberEntity);
             }
         }
-        private async Task NewMember(DiscordGuild guild, DiscordMember member)
+        private async Task UpdateMemberRemovedAsync(DiscordMember member)
+        {
+            IMemberService memberService = MutinyBot.Services.GetService<IMemberService>();
+            MemberEntity memberEntity = await memberService.GetOrCreateMemberAsync(member);
+
+            memberEntity.CurrentMember = false;
+            await memberService.UpdateMemberAsync(memberEntity);
+        }
+        private async Task NewMemberAsync(DiscordGuild guild, DiscordMember member)
         {
             IGuildService guildService = MutinyBot.Services.GetService<IGuildService>();
             GuildEntity guildEntity = await guildService.GetOrCreateGuildAsync(guild.Id);

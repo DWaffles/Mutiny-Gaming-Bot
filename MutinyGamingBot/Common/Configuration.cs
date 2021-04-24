@@ -45,7 +45,6 @@ namespace MutinyBot.Common
             File.WriteAllText(configName, json, new UTF8Encoding(false));
 
             return VerifyConfig();
-                
         }
         private bool VerifyConfig()
         {

@@ -2,8 +2,6 @@
 using DSharpPlus.CommandsNext.Attributes;
 using MutinyBot.Services;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MutinyBot.Modules.Attributes

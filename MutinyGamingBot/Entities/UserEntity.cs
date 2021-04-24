@@ -4,7 +4,5 @@
     {
         public ulong UserId { get; set; }
         public bool Banned { get; set; } = false;
-
-        //nationality
     }
 }

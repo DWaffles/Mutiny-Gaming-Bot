@@ -14,7 +14,7 @@ namespace MutinyBot.Modules
     public class RoleCommands : MutinyBotModule
     {
         [Command("role"), Aliases("r")]
-        public async Task RoleInformation(CommandContext ctx, DiscordRole discordRole)
+        public async Task RoleInformation(CommandContext ctx, [RemainingText] DiscordRole discordRole)
         {
             string authorName = "Role Information";
             string authorUrl = $"{ctx.Guild.IconUrl}";
@@ -38,9 +38,9 @@ namespace MutinyBot.Modules
 
             if (currentHolders.Any())
             {
-                if(currentHolders.Count <= maxCount)
+                if (currentHolders.Count <= maxCount)
                 {
-                    embed.AddField($"Current Holders ({currentHolders.Count})", string.Join("\n", currentHolders), true);
+                    embed.AddField($"Current Holders of {discordRole.Name} ({currentHolders.Count})", string.Join("\n", currentHolders), true);
                     await ctx.RespondAsync(embed: embed);
                 }
                 else
@@ -91,27 +91,7 @@ namespace MutinyBot.Modules
             {
                 embed.AddField($"Previous Holders ({previousHolderIds.Count})", string.Join("\n", previousHolderIds), true);
             }*/
-            
-        }
-        [Command("role")]
-        public async Task RoleInformation(CommandContext ctx, [RemainingText] string roleName)
-        {
-            var foundRole = ctx.Guild.Roles.Values.FirstOrDefault(role => role.Name.Equals(roleName, StringComparison.OrdinalIgnoreCase));
-            if (foundRole != null)
-            {
-                await RoleInformation(ctx, foundRole);
-            }
-            else
-            {
-                var embed = new DiscordEmbedBuilder
-                {
-                    Title = "Role Not Found",
-                    Description = $"No such role with that name was found.",
-                    Color = new DiscordColor(0xFF0000) // red
-                };
 
-                await ctx.RespondAsync(embed: embed);
-            }
         }
     }
 }

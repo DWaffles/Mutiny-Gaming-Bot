@@ -12,23 +12,20 @@ namespace MutinyBot.Database
         public DbSet<UserEntity> Users { get; set; }
         public DbSet<GuildEntity> Guilds { get; set; }
         public DbSet<MemberEntity> Members { get; set; }
-        public MutinyBot MutinyBot { protected get; set; }
-        public MutinyBotDbContext() 
+        public MutinyBotDbContext()
         {
-            if(Database.GetPendingMigrations().Any())
+            if (Database.GetPendingMigrations().Any())
                 Database.Migrate();
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             Console.WriteLine("DATABASE");
 
-            string dbPath = Path.Combine(Directory.GetCurrentDirectory(), "data");
-            Console.WriteLine(dbPath);
-            if (!Directory.Exists(dbPath))
-            {
-                Directory.CreateDirectory(dbPath);
-            }
-            string dbFilePath = Path.Combine(dbPath, "MutinyBotDatabase.sqlite.db");
+            string dbPath = Path.Combine("data");
+            DirectoryInfo dir = Directory.CreateDirectory(dbPath);
+            Console.WriteLine(dir.FullName);
+
+            string dbFilePath = Path.Combine(dir.FullName, "MutinyBotDatabase.sqlite.db");
 
             _ = optionsBuilder.UseSqlite($"Filename={dbFilePath}");
             _ = optionsBuilder.LogTo(Console.WriteLine, LogLevel.Warning);

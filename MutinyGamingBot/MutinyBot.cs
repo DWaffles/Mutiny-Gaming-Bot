@@ -82,10 +82,12 @@ namespace MutinyBot
             commands.CommandExecuted += CommandExecuted;
             commands.CommandErrored += CommandErrored;
 
-            InitializeServices();
-
             //Registering Commands
             commands.RegisterCommands(Assembly.GetExecutingAssembly()); //register commands from all modules
+
+            InitializeServices();
+
+
         }
         public async Task ConnectAsync()
         {
@@ -121,7 +123,7 @@ namespace MutinyBot
                     embed.Description = $"No such command was found.";
                     break;
                 case ChecksFailedException _:
-                    List<string> failedChecks = new List<string>();
+                    List<string> failedChecks = new();
                     foreach (var attr in ((ChecksFailedException)e.Exception).FailedChecks)
                     {
                         if (attr is UserNotBannedAttribute)
@@ -146,6 +148,7 @@ namespace MutinyBot
                 //UserNotBannedAttribute _ => "You have been banned from interacted with the bot.",
                 CooldownAttribute _ => "Command is still under cooldown.",
                 RequireOwnerAttribute _ => "Only the owner of the bot can use that command.",
+                RequireBotPermissionsAttribute _ => "I dont have the required permissions for that.",
                 RequirePermissionsAttribute _ => "You don't have permission to do that.",
                 RequireRolesAttribute _ => "You do not have a required role.",
                 RequireUserPermissionsAttribute _ => "You don't have permission to do that.",
@@ -154,5 +157,6 @@ namespace MutinyBot
                 _ => "Unknown required attribute."
             };
         }
+        // Permission checks?
     }
 }

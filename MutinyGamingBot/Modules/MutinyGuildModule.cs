@@ -1,6 +1,11 @@
-﻿using DSharpPlus.CommandsNext;
+﻿using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
+using MutinyBot.Modules.Attributes;
 using MutinyBot.Services;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MutinyBot.Modules
