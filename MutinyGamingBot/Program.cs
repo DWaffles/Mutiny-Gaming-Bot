@@ -23,7 +23,6 @@ namespace MutinyBot
             Console.WriteLine("Env.Current:             " + Environment.CurrentDirectory);
             Console.WriteLine("Dir.GetCurrent():        " + Directory.GetCurrentDirectory());
             Console.WriteLine("A.GetExecuting().Loc:    " + Assembly.GetExecutingAssembly().Location);
-            Console.WriteLine("A.GetExecuting().Code:   " + Assembly.GetExecutingAssembly().CodeBase);
             Console.WriteLine("A.GetEntry().Loc:        " + Assembly.GetEntryAssembly().Location);
         }
     }

@@ -11,6 +11,7 @@ namespace MutinyBot.Entities
         public int TimesJoined { get; set; } = 1;
         public int TimesMuted { get; set; }
         public bool CurrentMember { get; set; } = true;
+        public bool VerifiedPetOwner { get; set; }
         public Dictionary<ulong, bool> RoleDictionary { get; set; } = new Dictionary<ulong, bool>();
         public MemberEntity() { }
         public MemberEntity(DiscordMember member)

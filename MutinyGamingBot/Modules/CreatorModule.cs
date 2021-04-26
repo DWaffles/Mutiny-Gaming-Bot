@@ -61,12 +61,36 @@ namespace MutinyBot.Modules
 
             await ctx.RespondAsync($"User has been removed from the ban list.");
         }
-        // Change to allow choosing of activity type
+        [Command("addpetowner"), Aliases("apetowner", "apo")]
+        [Description("Makes a user a verified pet owner and able to add images to the pet list for all guilds.")]
+        public async Task AddPetOwner(CommandContext ctx, DiscordMember member)
+        {
+            await ctx.TriggerTypingAsync();
+
+            var memberEntity = await MemberService.GetOrCreateMemberAsync(member);
+            memberEntity.VerifiedPetOwner = true;
+            await MemberService.UpdateMemberAsync(memberEntity);
+
+            await ctx.RespondAsync($"{member.DisplayName} can now add to the pet list.");
+        }
+        [Command("removepetowner"), Aliases("rpetowner", "rpo")]
+        [Description("Yada yada.")]
+        public async Task RemovePetOwner(CommandContext ctx, DiscordMember member)
+        {
+            await ctx.TriggerTypingAsync();
+
+            var memberEntity = await MemberService.GetOrCreateMemberAsync(member);
+            memberEntity.VerifiedPetOwner = false;
+            await MemberService.UpdateMemberAsync(memberEntity);
+
+            await ctx.RespondAsync($"{member.DisplayName} can no longer add to the pet list.");
+        }
+        // Change to allow choosing of activity type using interactivity //change config as well?
         [Command("status"), Aliases("s"), Description("Sets the bot status.")]
         public async Task Status(CommandContext ctx, [RemainingText, Description("Status to set.")] string status)
         {
             await ctx.TriggerTypingAsync();
-            await ctx.Client.UpdateStatusAsync(new DiscordActivity(status));
+            await ctx.Client.UpdateStatusAsync(new DiscordActivity(status)); //try catch? 
             await ctx.RespondAsync($"Status set to {status}");
         }
         [Command("export")]
@@ -80,7 +104,7 @@ namespace MutinyBot.Modules
             string output = "Discord Username, Guild Nickname, User Id, Joined, Num Roles, Current Roles";
 
             var members = await ctx.Guild.GetAllMembersAsync();
-            List<string> userStrings = new List<string>(); //ConcurrentBag?
+            List<string> userStrings = new(); //ConcurrentBag?
             foreach (var member in members) //Parallel.ForEach?
             {
                 string userString = "";
@@ -112,6 +136,27 @@ namespace MutinyBot.Modules
     [Description("Debug commands."), Hidden, RequireOwner]
     public class DebugModule : MutinyBotModule
     {
+        [Command("media")]
+        public async Task MediaDebug(CommandContext ctx, [RemainingText] string whatever)
+        {
+            await ctx.TriggerTypingAsync();
+
+            string mediaUrl = UtilityHelpers.FirstImageOrVideoUrl(ctx.Message);
+
+            if (String.IsNullOrEmpty(mediaUrl))
+            {
+                await ctx.RespondAsync("None attached");
+                return;
+            }
+
+
+            var embed = new DiscordEmbedBuilder()
+                .WithDescription(mediaUrl)
+                .WithImageUrl(mediaUrl)
+                .WithColor(new DiscordColor(MutinyBot.Config.HexCode));
+
+            await ctx.RespondAsync(embed: embed);
+        }
         [Command("mute")]
         public async Task MuteDebug(CommandContext ctx, DiscordMember member, TimeSpan muteTime, string reason = null)
         {

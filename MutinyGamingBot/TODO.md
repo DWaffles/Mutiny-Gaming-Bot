@@ -25,7 +25,6 @@
 ### MemberEntity.cs
 
 - Add DateTime property for last message
-- Add int TimesMuted propery
 - Add Nationality flag emoji field?
 
 ### UserEntity.cs
@@ -53,6 +52,13 @@
 - Implement traingings/instructor command
 - Implement mascot/cat command
 - Implement arma mod command
+
+### PetModule.cs 
+
+- Implement list all pets in guild
+- Implement list all pets in guild by member
+- Implement using `[prefix]pet [user]` instead of `[prefix]pet pet [user]`
+- Change `addpetowner` and `removepetowner` to not require creator permissions
 
 ### RoleModule.cs
 
@@ -98,7 +104,7 @@
 
 - Implement consistent logging method through out program
 - Log level definable via config
-- Logg to console and log to file capabilities
+- Log to console and log to file capabilities
 
 ## README.md
 

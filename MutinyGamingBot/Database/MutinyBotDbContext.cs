@@ -12,6 +12,7 @@ namespace MutinyBot.Database
         public DbSet<UserEntity> Users { get; set; }
         public DbSet<GuildEntity> Guilds { get; set; }
         public DbSet<MemberEntity> Members { get; set; }
+        public DbSet<PetEntity> Pets { get; set; }
         public MutinyBotDbContext()
         {
             if (Database.GetPendingMigrations().Any())
@@ -43,6 +44,10 @@ namespace MutinyBot.Database
             //MemberEntity
             _ = modelBuilder.Entity<MemberEntity>().HasIndex(x => new { x.MemberId, x.GuildId }).IsUnique(true);
             _ = modelBuilder.Entity<MemberEntity>().Property(x => x.RoleDictionary).HasJsonConversion();
+
+            //Pet Entity
+            _ = modelBuilder.Entity<PetEntity>().Property(x => x.OwnerId).IsRequired();
+            _ = modelBuilder.Entity<PetEntity>().Property(x => x.GuildId).IsRequired();
         }
     }
 }

@@ -7,8 +7,8 @@ namespace MutinyBot.Modules
     public class MiscModule : MutinyBotModule
     {
         [Command("ping"), Aliases("p")]
-        [Description("Returns the bot's ping to Discord.")] // displayed when help is invoked
-        public async Task Ping(CommandContext ctx) // this command takes no arguments
+        [Description("Returns the bot's ping to Discord.")]
+        public async Task Ping(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
             await ctx.RespondAsync($"Pong: {ctx.Client.Ping}ms");
@@ -18,7 +18,7 @@ namespace MutinyBot.Modules
         public async Task CoinFlip(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
-            int result = Rng.Next(2);
+            int result = Rand.Next(2);
             if (result == 0) //heads
                 await ctx.RespondAsync($"Heads!");
             else //tails

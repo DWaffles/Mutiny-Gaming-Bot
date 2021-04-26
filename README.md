@@ -15,3 +15,4 @@ MGBot is still under development in a debug status and not production ready.
 
 - [DSharpPlus Nightly Builds](https://github.com/DSharpPlus/DSharpPlus/)
 - [Microsoft Entity Framework Core](https://docs.microsoft.com/en-us/ef/)
+- [Humanizer](https://github.com/Humanizr/Humanizer)

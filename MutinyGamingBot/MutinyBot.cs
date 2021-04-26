@@ -39,6 +39,7 @@ namespace MutinyBot
                 .AddSingleton<IGuildService, GuildService>()
                 .AddSingleton<IEventService, EventService>()
                 .AddSingleton<IMemberService, MemberService>()
+                .AddSingleton<IPetService, PetService>()
                 .AddDbContext<MutinyBotDbContext>()
                 .BuildServiceProvider();
 
@@ -86,8 +87,6 @@ namespace MutinyBot
             commands.RegisterCommands(Assembly.GetExecutingAssembly()); //register commands from all modules
 
             InitializeServices();
-
-
         }
         public async Task ConnectAsync()
         {

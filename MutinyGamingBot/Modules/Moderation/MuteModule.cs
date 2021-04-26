@@ -28,9 +28,7 @@ namespace MutinyBot.Modules.Moderation
             [Description("[Required] The time period to mute the user. Only supports h for hours, and d for days." +
             "\nEx, \"5h\" -> 5 hours, or \"2d\" for 2 days.")] TimeSpan muteTime,
             [Description("[Optional] Given reason for muting the member."), RemainingText] string reason = null)
-        {
-
-        }*/
+        {}*/
         [Command("pmute"), Aliases("permanentmute")]
         [RequireBotPermissions(Permissions.ManageRoles)]
         [RequireUserPermissions(Permissions.ManageRoles)]
@@ -50,13 +48,13 @@ namespace MutinyBot.Modules.Moderation
             }
 
             DiscordRole muteRole = ctx.Guild.GetRole(guildConfig.MuteRoleId);
-            if(muteRole is null)
+            if (muteRole is null)
             {
                 await ctx.RespondAsync($"I am unable to retrieve {ctx.Guild.Name}'s set mute role.");
                 return;
             }
 
-            if(muteRole.Position >= ctx.Guild.CurrentMember.Roles.Max(role => role.Position))
+            if (muteRole.Position >= ctx.Guild.CurrentMember.Roles.Max(role => role.Position))
             {
                 await ctx.RespondAsync($"{muteRole.Name} is higher or the same as my highest role.");
                 return;
@@ -84,13 +82,13 @@ namespace MutinyBot.Modules.Moderation
                 if (ctx.Channel.PermissionsFor(mentionedMember).HasPermission(Permissions.AccessChannels))
                     embed.AddField("Context", Formatter.MaskedUrl("Message", ctx.Message.JumpLink), true);
 
-                _ = await mentionedMember.SendMessageAsync(embed:embed);
+                _ = await mentionedMember.SendMessageAsync(embed: embed);
                 dmEnabled = true;
             }
             catch { }
 
             DiscordChannel modChannel = ctx.Guild.GetChannel(guildConfig.ModerationLogChannelId);
-            if(modChannel is not null)
+            if (modChannel is not null)
             {
                 string dateTimeFormat = "ddd MMM dd, yyyy HH:mm tt";
                 string description = $"{mentionedMember.Mention} has been muted by {ctx.User.Mention} for an indefinite period of time."

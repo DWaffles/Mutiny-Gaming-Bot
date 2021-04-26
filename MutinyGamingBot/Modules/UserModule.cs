@@ -4,7 +4,6 @@ using DSharpPlus.Entities;
 using Humanizer;
 using Humanizer.Localisation;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -57,14 +56,14 @@ namespace MutinyBot.Modules
         public async Task UserInformation(CommandContext ctx, [RemainingText] string memberName)
         {
             var members = await ctx.Guild.GetAllMembersAsync();
-            var foundMember = FindMember(members.ToList(), memberName);
+            var foundMember = FindMemberByName(members, memberName);
             if (foundMember != null)
             {
                 await UserInformation(ctx, foundMember);
             }
             else
             {
-                await ctx.RespondAsync(embed: UserNotFoundEmbed());
+                await ctx.RespondAsync(embed: MemberNotFoundEmbed());
             }
         }
         [Command("profile"), Aliases("pfp")]
@@ -87,29 +86,15 @@ namespace MutinyBot.Modules
         public async Task UserProfile(CommandContext ctx, [RemainingText] string memberName)
         {
             var members = await ctx.Guild.GetAllMembersAsync();
-            var foundMember = FindMember(members.ToList(), memberName);
+            var foundMember = FindMemberByName(members.ToList(), memberName);
             if (foundMember != null)
             {
                 await UserProfile(ctx, foundMember);
             }
             else
             {
-                await ctx.RespondAsync(embed: UserNotFoundEmbed());
+                await ctx.RespondAsync(embed: MemberNotFoundEmbed());
             }
-        }
-        private DiscordMember FindMember(List<DiscordMember> members, string memberName)
-        {
-            var foundMember = members.FirstOrDefault(member => member.DisplayName.Equals(memberName, StringComparison.OrdinalIgnoreCase));
-            return foundMember ?? members.FirstOrDefault(member => member.Username.Equals(memberName, StringComparison.OrdinalIgnoreCase));
-        }
-        private DiscordEmbed UserNotFoundEmbed()
-        {
-            return new DiscordEmbedBuilder
-            {
-                Title = "User Not Found",
-                Description = $"No such user with that nickname or username was found.",
-                Color = new DiscordColor(0xFF0000) // red
-            };
         }
     }
 }
