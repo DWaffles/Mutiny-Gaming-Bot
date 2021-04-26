@@ -19,7 +19,7 @@ namespace MutinyBot.Modules
         private readonly Regex fileTypePattern = new(".(png|jp(e)?g|gif|webp)",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
         [GroupCommand]
-        [Description("Gets a random pet for this server or one from a member, if given.")]
+        [Description("Gets a random pet for this server.")]
         [Cooldown(4, 15, CooldownBucketType.Channel)]
         public async Task GetPet(CommandContext ctx)
         {
@@ -35,7 +35,9 @@ namespace MutinyBot.Modules
 
             await ctx.RespondAsync(embed: GetPetEmbed(author: ctx.Member, owner: owner, pet: pet));
         }
-        [Command("pet")]
+        [Command("from")]
+        [Description("Gets a random pet from a member.")]
+        [Cooldown(4, 15, CooldownBucketType.Channel)]
         public async Task GetPetByOwner(CommandContext ctx,
             [Description("Pinged user to get pet from")] DiscordMember owner)
         {
@@ -49,7 +51,7 @@ namespace MutinyBot.Modules
             }
             await ctx.RespondAsync(embed: GetPetEmbed(author: ctx.Member, owner: owner, pet: pet));
         }
-        [Command("pet")]
+        [Command("from")]
         public async Task GetPetByOwner(CommandContext ctx,
             [Description("Display or username of member to get pet from")][RemainingText] string owner)
         {
@@ -63,6 +65,24 @@ namespace MutinyBot.Modules
             else
                 await ctx.RespondAsync(MemberNotFoundEmbed());
         }
+        [Command("list")]
+        [Description("List all pets in this server, or list all pets from a specific member if given.")]
+        public async Task ListAllPets(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+        }
+        [Command("list")]
+        public async Task ListAllPetsFromUser(CommandContext ctx, 
+            [Description("[OPTIONAL] Ping the member to search pets for.")] DiscordMember owner = null)
+        {
+            await ctx.TriggerTypingAsync();
+        }
+        [Command("list")]
+        public async Task ListAllPetsFromUser(CommandContext ctx, 
+            [Description("[OPTIONAL] Display or username of the member to search pets for."), RemainingText] string memberName)
+        {
+            await ctx.TriggerTypingAsync();
+        }
         [Command("add")]
         [Description("To add a pet, attach an image or give a link, and *then* give the name of the pet. File types must be .PNG, .JPEG, .GIF, or .WEBP")]
         public async Task AddPet(CommandContext ctx,
@@ -75,6 +95,7 @@ namespace MutinyBot.Modules
         public async Task AddPet(CommandContext ctx,
             [Description("Can be multiple words."), RemainingText] string petName)
         {
+            await ctx.TriggerTypingAsync();
             var memberEntity = await MemberService.GetOrCreateMemberAsync(ctx.Member);
             if (!memberEntity.VerifiedPetOwner)
             {
