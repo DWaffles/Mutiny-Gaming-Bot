@@ -59,11 +59,9 @@ namespace MutinyBot
                 | DiscordIntents.GuildMessages
                 | DiscordIntents.GuildMessageReactions
                 | DiscordIntents.GuildMembers
-                | DiscordIntents.GuildBans
-                | DiscordIntents.GuildEmojis
                 | DiscordIntents.DirectMessages
                 | DiscordIntents.DirectMessageReactions
-                | DiscordIntents.AllUnprivileged
+                //| DiscordIntents.AllUnprivileged
             });
 
             CommandsNextExtension commands = Client.UseCommandsNext(new CommandsNextConfiguration()
@@ -118,6 +116,13 @@ namespace MutinyBot
                     embed.Description = $"The arguments given for the command is not valid.";
                     break;
                 case CommandNotFoundException _:
+                    int value = 0;
+                    value = 1;
+
+                    Console.WriteLine(((CommandNotFoundException)e.Exception).ToString());
+                    Console.WriteLine($"e.Context.Message: {e.Context.Message.Content}");
+                    Console.WriteLine(UtilityHelpers.ExtractNextArgument(e.Context.Message.Content, ref value));
+                    Console.WriteLine(UtilityHelpers.ExtractNextArgument(e.Context.Message.Content, ref value));
                     embed.Title = "Command not found";
                     embed.Description = $"No such command was found.";
                     break;
@@ -157,5 +162,6 @@ namespace MutinyBot
             };
         }
         // Permission checks?
+        
     }
 }

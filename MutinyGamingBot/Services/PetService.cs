@@ -10,9 +10,11 @@ namespace MutinyBot.Services
 {
     public interface IPetService
     {
-        PetEntity GetRandomPet(ulong guildId);
+        PetEntity GetRandomGuildPet(ulong guildId);
         PetEntity GetRandomPetFromMember(DiscordMember member);
         PetEntity GetPetFromId(int UniquePetId);
+        IEnumerable<PetEntity> GetAllGuildPets(ulong guildId);
+        IEnumerable<PetEntity> GetAllPetsFromMember(DiscordMember member);
         int GetNumberPetsFromMember(DiscordMember member);
         Task AddPetAsync(PetEntity pet);
         Task RemovePetAsync(PetEntity pet);
@@ -28,7 +30,7 @@ namespace MutinyBot.Services
             this.dbContext = dbContext;
             this.rand = rand;
         }
-        public PetEntity GetRandomPet(ulong guildId)
+        public PetEntity GetRandomGuildPet(ulong guildId)
         {
             if (dbContext.Pets.Any(x => x.GuildId == guildId))
             {
@@ -55,6 +57,14 @@ namespace MutinyBot.Services
         public PetEntity GetPetFromId(int UniquePetId)
         {
             return dbContext.Pets.SingleOrDefault(x => x.Id == UniquePetId);
+        }
+        public IEnumerable<PetEntity> GetAllGuildPets(ulong guildId)
+        {
+            return dbContext.Pets.Where(x => x.GuildId == guildId);
+        }
+        public IEnumerable<PetEntity> GetAllPetsFromMember(DiscordMember member)
+        {
+            return dbContext.Pets.Where(x => x.GuildId == member.Guild.Id && x.OwnerId == member.Id);
         }
         public int GetNumberPetsFromMember(DiscordMember member)
         {

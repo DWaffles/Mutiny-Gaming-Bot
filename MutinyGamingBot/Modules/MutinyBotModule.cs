@@ -18,16 +18,16 @@ namespace MutinyBot.Modules
         public IGuildService GuildService { protected get; set; }
         public IMemberService MemberService { protected get; set; }
         public IPetService PetService { protected get; set; }
-        protected static DiscordMember FindMemberByName(IEnumerable<DiscordMember> members, string memberName)
+        protected static DiscordMember GetMemberByName(IEnumerable<DiscordMember> members, string memberName)
         {
             return members.FirstOrDefault(member => member.DisplayName.Equals(memberName, StringComparison.OrdinalIgnoreCase));
         }
-        protected static async Task<DiscordMember> FindMemberByNameAsync(DiscordGuild guild, string memberName)
+        protected static async Task<DiscordMember> GetMemberByNameAsync(DiscordGuild guild, string memberName)
         {
             var members = await guild.GetAllMembersAsync();
             return members.FirstOrDefault(member => member.DisplayName.Equals(memberName, StringComparison.OrdinalIgnoreCase));
         }
-        protected static DiscordEmbed MemberNotFoundEmbed()
+        protected static DiscordEmbed GetMemberNotFoundEmbed()
         {
             return new DiscordEmbedBuilder
             {

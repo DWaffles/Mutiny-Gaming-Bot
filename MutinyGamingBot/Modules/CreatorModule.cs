@@ -61,7 +61,7 @@ namespace MutinyBot.Modules
 
             await ctx.RespondAsync($"User has been removed from the ban list.");
         }
-        [Command("addpetowner"), Aliases("apetowner", "apo")]
+        [Command("addpetowner"), Aliases("apo")] //authorized pet officer
         [Description("Makes a user a verified pet owner and able to add images to the pet list for all guilds.")]
         public async Task AddPetOwner(CommandContext ctx, DiscordMember member)
         {
@@ -73,7 +73,7 @@ namespace MutinyBot.Modules
 
             await ctx.RespondAsync($"{member.DisplayName} can now add to the pet list.");
         }
-        [Command("removepetowner"), Aliases("rpetowner", "rpo")]
+        [Command("removepetowner"), Aliases("rpo")]
         [Description("Yada yada.")]
         public async Task RemovePetOwner(CommandContext ctx, DiscordMember member)
         {

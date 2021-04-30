@@ -56,14 +56,14 @@ namespace MutinyBot.Modules
         public async Task UserInformation(CommandContext ctx, [RemainingText] string memberName)
         {
             var members = await ctx.Guild.GetAllMembersAsync();
-            var foundMember = FindMemberByName(members, memberName);
+            var foundMember = GetMemberByName(members, memberName);
             if (foundMember != null)
             {
                 await UserInformation(ctx, foundMember);
             }
             else
             {
-                await ctx.RespondAsync(embed: MemberNotFoundEmbed());
+                await ctx.RespondAsync(embed: GetMemberNotFoundEmbed());
             }
         }
         [Command("profile"), Aliases("pfp")]
@@ -86,14 +86,14 @@ namespace MutinyBot.Modules
         public async Task UserProfile(CommandContext ctx, [RemainingText] string memberName)
         {
             var members = await ctx.Guild.GetAllMembersAsync();
-            var foundMember = FindMemberByName(members.ToList(), memberName);
+            var foundMember = GetMemberByName(members.ToList(), memberName);
             if (foundMember != null)
             {
                 await UserProfile(ctx, foundMember);
             }
             else
             {
-                await ctx.RespondAsync(embed: MemberNotFoundEmbed());
+                await ctx.RespondAsync(embed: GetMemberNotFoundEmbed());
             }
         }
     }

@@ -16,20 +16,18 @@ namespace MutinyBot.Modules
         [Command("role"), Aliases("r")]
         public async Task RoleInformation(CommandContext ctx, [RemainingText] DiscordRole discordRole)
         {
-            string authorName = "Role Information";
-            string authorUrl = $"{ctx.Guild.IconUrl}";
-
             await ctx.TriggerTypingAsync();
 
             var memberList = ctx.Guild.Members.Values;
             if (memberList.Count() != ctx.Guild.MemberCount)
             {
-                authorName += " (Retrieved)";
                 memberList = await ctx.Guild.GetAllMembersAsync();
             }
 
             var currentHolders = memberList.Where(x => x.Roles.Contains(discordRole)).Select(x => x.Mention).ToList();
 
+            string authorName = "Role Information";
+            string authorUrl = $"{ctx.Guild.IconUrl}";
             var embed = new DiscordEmbedBuilder()
                         .WithAuthor(authorName, iconUrl: authorUrl)
                         .WithColor(new DiscordColor(MutinyBot.Config.HexCode));

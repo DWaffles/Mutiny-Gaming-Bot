@@ -2,9 +2,13 @@
 using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Extensions;
 using MutinyBot.Common;
 using MutinyBot.Entities;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -12,6 +16,8 @@ namespace MutinyBot.Modules
 {
     [RequireGuild()]
     [Group("pet"), Aliases("pets")]
+    [Description("Gets a random pet for this server.")]
+    [Cooldown(4, 15, CooldownBucketType.Channel)]
     public class PetModule : MutinyBotModule
     {
         // Allowed file types within embeds: JPG PNG GIF WEBP
@@ -19,13 +25,11 @@ namespace MutinyBot.Modules
         private readonly Regex fileTypePattern = new(".(png|jp(e)?g|gif|webp)",
             RegexOptions.IgnoreCase | RegexOptions.Compiled);
         [GroupCommand]
-        [Description("Gets a random pet for this server.")]
-        [Cooldown(4, 15, CooldownBucketType.Channel)]
         public async Task GetPet(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
 
-            PetEntity pet = PetService.GetRandomPet(ctx.Guild.Id);
+            PetEntity pet = PetService.GetRandomGuildPet(ctx.Guild.Id);
             if (pet is null)
             {
                 await ctx.RespondAsync($"There are no pets for this server.");
@@ -37,7 +41,6 @@ namespace MutinyBot.Modules
         }
         [Command("from")]
         [Description("Gets a random pet from a member.")]
-        [Cooldown(4, 15, CooldownBucketType.Channel)]
         public async Task GetPetByOwner(CommandContext ctx,
             [Description("Pinged user to get pet from")] DiscordMember owner)
         {
@@ -58,30 +61,85 @@ namespace MutinyBot.Modules
             await ctx.TriggerTypingAsync();
 
             var members = await ctx.Guild.GetAllMembersAsync();
-            var foundMember = FindMemberByName(members, owner);
+            var foundMember = GetMemberByName(members, owner);
 
             if (foundMember is not null)
                 await GetPetByOwner(ctx, foundMember);
             else
-                await ctx.RespondAsync(MemberNotFoundEmbed());
+                await ctx.RespondAsync(GetMemberNotFoundEmbed());
+        }
+        [Command("id")]
+        [Description("List all pets in this server, or list all pets from a specific member if given.")]
+        public async Task GetPetById(CommandContext ctx, int uniquePetId)
+        {
+            await ctx.TriggerTypingAsync();
+
+            PetEntity pet = PetService.GetPetFromId(uniquePetId);
+            if (pet is null)
+            {
+                await ctx.RespondAsync($"There no pets with the id of {uniquePetId}.");
+                return;
+            }
+            if(pet.GuildId != ctx.Guild.Id)
+            {
+                await ctx.RespondAsync($"This given pet is not for {ctx.Guild.Name}.");
+                return;
+            }
+            DiscordMember owner = await ctx.Guild.GetMemberAsync(pet.OwnerId);
+
+            await ctx.RespondAsync(embed: GetPetEmbed(author: ctx.Member, owner: owner, pet: pet));
         }
         [Command("list")]
         [Description("List all pets in this server, or list all pets from a specific member if given.")]
         public async Task ListAllPets(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
+            var pets = PetService.GetAllGuildPets(ctx.Guild.Id);
+
+            if (!pets.Any())
+            {
+                await ctx.RespondAsync($"There no pets for {ctx.Guild.Name}.");
+                return;
+            }
+            pets = pets.OrderBy(x => x.Id);
+            int maxCount = 25;
+
+            if (pets.Count() <= maxCount)
+            {
+                await ctx.RespondAsync(GetPetListEmbed(ctx.Guild, pets));
+            }
+            else //paginated embed
+            {
+                List<Page> pages = GetInteractivePetListPages(ctx.Guild, pets, maxCount);
+                var interactivity = ctx.Client.GetInteractivity();
+                await interactivity.SendPaginatedMessageAsync(ctx.Channel, ctx.User, pages); // override to 2 minutes instead?
+            }
         }
         [Command("list")]
         public async Task ListAllPetsFromUser(CommandContext ctx, 
             [Description("[OPTIONAL] Ping the member to search pets for.")] DiscordMember owner = null)
         {
             await ctx.TriggerTypingAsync();
+
+            var pets = PetService.GetAllPetsFromMember(owner);
+
+            if (pets.Any())
+            {
+                await ctx.RespondAsync($"There no pets for {ctx.Guild.Name}.");
+                return;
+            }
         }
         [Command("list")]
         public async Task ListAllPetsFromUser(CommandContext ctx, 
             [Description("[OPTIONAL] Display or username of the member to search pets for."), RemainingText] string memberName)
         {
-            await ctx.TriggerTypingAsync();
+            var foundMember = await GetMemberByNameAsync(ctx.Guild, memberName);
+            if(foundMember is null)
+            {
+                await ctx.RespondAsync(embed: GetMemberNotFoundEmbed());
+                return;
+            }
+            await ListAllPetsFromUser(ctx, foundMember);
         }
         [Command("add")]
         [Description("To add a pet, attach an image or give a link, and *then* give the name of the pet. File types must be .PNG, .JPEG, .GIF, or .WEBP")]
@@ -169,6 +227,39 @@ namespace MutinyBot.Modules
                 .WithFooter($"Unique ID: {pet.Id}")
                 .WithTimestamp(DateTime.Now)
                 .WithColor(new DiscordColor(MutinyBot.Config.HexCode));
+        }
+        private DiscordEmbed GetPetListEmbed(DiscordGuild guild, IEnumerable<PetEntity> pets)
+        {
+            List<string> petNames = new();
+            List<string> ownerNames = new();
+            List<int> petIds = new();
+
+            var embed = new DiscordEmbedBuilder()
+                .WithAuthor($"All Pets for {guild.Name}", iconUrl: guild.IconUrl)
+                .WithColor(new DiscordColor(MutinyBot.Config.HexCode));
+
+            foreach (PetEntity pet in pets)
+            {
+                petNames.Add(pet.PetName ?? "No Name Given");
+                ownerNames.Add($"<@{pet.OwnerId}>");
+                petIds.Add(pet.Id);
+            }
+            embed.AddField($"Pet", string.Join("\n", petNames), true);
+            embed.AddField($"Owner", string.Join("\n", ownerNames), true);
+            embed.AddField($"ID", string.Join("\n", petIds), true);
+            return embed;
+        }
+        private static List<Page> GetInteractivePetListPages(DiscordGuild guild, IEnumerable<PetEntity> pets, int maxCount)
+        {
+            List<Page> pages = new();
+            int numPages = (int)Math.Ceiling((double)pets.Count() / maxCount);
+
+            for (int pageIndex = 0; pageIndex < numPages; pageIndex++)
+            {
+
+            }
+
+            return pages;
         }
     }
 }
