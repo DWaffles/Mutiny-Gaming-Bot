@@ -85,14 +85,6 @@ namespace MutinyBot.Modules
 
             await ctx.RespondAsync($"{member.DisplayName} can no longer add to the pet list.");
         }
-        // Change to allow choosing of activity type using interactivity //change config as well?
-        [Command("status"), Aliases("s"), Description("Sets the bot status.")]
-        public async Task Status(CommandContext ctx, [RemainingText, Description("Status to set.")] string status)
-        {
-            await ctx.TriggerTypingAsync();
-            await ctx.Client.UpdateStatusAsync(new DiscordActivity(status)); //try catch? 
-            await ctx.RespondAsync($"Status set to {status}");
-        }
         [Command("export")]
         public async Task ExportMembers(CommandContext ctx, string fileName = "output.csv")
         {
@@ -149,10 +141,40 @@ namespace MutinyBot.Modules
                 return;
             }
 
-
             var embed = new DiscordEmbedBuilder()
                 .WithDescription(mediaUrl)
                 .WithImageUrl(mediaUrl)
+                .WithColor(new DiscordColor(MutinyBot.Config.HexCode));
+
+            await ctx.RespondAsync(embed: embed);
+        }
+        [Command("getmedia")]
+        public async Task MediaDebug(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            IEnumerable<string> mediaTypes;
+
+            if (ctx.Message.Attachments.Any())
+                mediaTypes = UtilityHelpers.GetAttachmentMediaTypes(ctx.Message);  
+            else if(ctx.Message.Reference is not null)
+                mediaTypes = UtilityHelpers.GetAttachmentMediaTypes(ctx.Message.Reference.Message);
+            else
+            {
+                await ctx.RespondAsync("None attached");
+                return;
+            }
+
+            await ctx.RespondAsync($"Message has {mediaTypes.Count()} attachment(s).\n{String.Join("\n", mediaTypes)}");
+        }
+        [Command("embed")]
+        public async Task EmbedDebug(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+
+            var embed = new DiscordEmbedBuilder()
+                .WithDescription(ctx.Message.Attachments[0].MediaType)
+                .WithImageUrl(ctx.Message.Attachments[0].Url)
                 .WithColor(new DiscordColor(MutinyBot.Config.HexCode));
 
             await ctx.RespondAsync(embed: embed);

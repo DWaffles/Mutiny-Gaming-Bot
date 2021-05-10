@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace MutinyBot
 {
-    public class MutinyBot
+    public partial class MutinyBot
     {
         public Configuration Config { get; }
         public DiscordClient Client { get; }
@@ -37,7 +37,6 @@ namespace MutinyBot
                 .AddSingleton<Random>()
                 .AddSingleton<IUserService, UserService>()
                 .AddSingleton<IGuildService, GuildService>()
-                .AddSingleton<IEventService, EventService>()
                 .AddSingleton<IMemberService, MemberService>()
                 .AddSingleton<IPetService, PetService>()
                 .AddDbContext<MutinyBotDbContext>()
@@ -61,7 +60,6 @@ namespace MutinyBot
                 | DiscordIntents.GuildMembers
                 | DiscordIntents.DirectMessages
                 | DiscordIntents.DirectMessageReactions
-                //| DiscordIntents.AllUnprivileged
             });
 
             CommandsNextExtension commands = Client.UseCommandsNext(new CommandsNextConfiguration()
@@ -78,24 +76,30 @@ namespace MutinyBot
             });
 
             //Registering events
+            Client.Ready += OnReady;
+            Client.ClientErrored += OnClientError;
+
+            Client.MessageCreated += Client_MessageCreated;
+
+            Client.GuildDownloadCompleted += OnGuildsCompleted;
+            Client.GuildAvailable += OnGuildAvailable;
+            Client.GuildCreated += OnGuildJoined;
+
+            Client.GuildMemberUpdated += OnGuildMemberUpdated;
+            Client.GuildMemberAdded += OnGuildMemberAdded;
+            Client.GuildMemberRemoved += OnGuildMemberRemoved;
+
             commands.CommandExecuted += CommandExecuted;
             commands.CommandErrored += CommandErrored;
 
             //Registering Commands
             commands.RegisterCommands(Assembly.GetExecutingAssembly()); //register commands from all modules
-
-            InitializeServices();
         }
         public async Task ConnectAsync()
         {
             var activity = new DiscordActivity($"[{string.Join(", ", Config.CommandPrefixes)}] Farming Simulator 2019", ActivityType.Playing);
             await Client.ConnectAsync(activity);
             await Task.Delay(-1);
-        }
-        private void InitializeServices()
-        {
-            IEventService events = Services.GetService<IEventService>();
-            events.Initialize();
         }
         private Task CommandExecuted(CommandsNextExtension _, CommandExecutionEventArgs e)
         {
