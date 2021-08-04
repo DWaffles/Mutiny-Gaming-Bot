@@ -1,6 +1,5 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
-using MutinyBot.Modules.Attributes;
 using MutinyBot.Services;
 using System;
 using System.Collections.Generic;
@@ -13,21 +12,27 @@ namespace MutinyBot.Modules
     public class MutinyBotModule : BaseCommandModule
     {
         public Random Rand { protected get; set; }
+        public UserService UserService { protected get; set; }
+        public GuildService GuildService { protected get; set; }
+        public MemberService MemberService { protected get; set; }
+        public PetService PetService { protected get; set; }
         public MutinyBot MutinyBot { protected get; set; }
-        public IUserService UserService { protected get; set; }
-        public IGuildService GuildService { protected get; set; }
-        public IMemberService MemberService { protected get; set; }
-        public IPetService PetService { protected get; set; }
-        protected static DiscordMember FindMemberByName(IEnumerable<DiscordMember> members, string memberName)
+        protected DiscordColor GetBotColor()
         {
-            return members.FirstOrDefault(member => member.DisplayName.Equals(memberName, StringComparison.OrdinalIgnoreCase));
+            return MutinyBot.GetBotColor();
         }
-        protected static async Task<DiscordMember> FindMemberByNameAsync(DiscordGuild guild, string memberName)
+        protected static DiscordMember GetMemberByName(IEnumerable<DiscordMember> members, string memberName)
+        {
+            return members.FirstOrDefault(member => member.Nickname.Equals(memberName, StringComparison.OrdinalIgnoreCase)
+            || member.Username.Equals(memberName, StringComparison.OrdinalIgnoreCase));
+        }
+        protected static async Task<DiscordMember> GetMemberByNameAsync(DiscordGuild guild, string memberName)
         {
             var members = await guild.GetAllMembersAsync();
-            return members.FirstOrDefault(member => member.DisplayName.Equals(memberName, StringComparison.OrdinalIgnoreCase));
+            return members.FirstOrDefault(member => member.Nickname.Equals(memberName, StringComparison.OrdinalIgnoreCase)
+            || member.Username.Equals(memberName, StringComparison.OrdinalIgnoreCase));
         }
-        protected static DiscordEmbed MemberNotFoundEmbed()
+        protected static DiscordEmbed GetMemberNotFoundEmbed()
         {
             return new DiscordEmbedBuilder
             {

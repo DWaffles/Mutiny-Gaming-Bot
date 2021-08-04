@@ -11,21 +11,17 @@
 
 ### MutinyBotDbContext.cs
 
-- Find a less lazy and much more robust way of implementing migrations for production settings
-	- Kinda done?
-
 ## Entities
 
 ### GuildEntity.cs
 
 - Add bool value for enabling birthday messages
-- Remove GuildName or have it used for console messages
 - Moderation log channel
 
 ### MemberEntity.cs
 
-- Add DateTime property for last message
 - Add Nationality flag emoji field?
+	- enum for emojis?
 
 ### UserEntity.cs
 
@@ -42,8 +38,6 @@
 ### CreatorModule.cs
 
 ### Implement GuildModule.cs
-
-- Add guild info command
 
 ### MemeModule.cs
 
@@ -74,9 +68,6 @@
 
 ### EventService.cs
 
-- Fix problem regarding OnGuildAvailable() and OnGuildJoined() taking more than 1 second from UpdateGuild() for guilds with large member counts
-	- Change UpdateGuild() to use transaction instead?
-
 ### GuildService.cs
 
 - Implement RemoveGuildAsync()
@@ -98,13 +89,10 @@
 
 ## MutinyBot.cs
 
-- Tidy up command errored
-
 ## Logging
 
 - Implement consistent logging method through out program
 - Log level definable via config
-- Log to console and log to file capabilities
 
 ## README.md
 

@@ -4,15 +4,17 @@ using System.Threading.Tasks;
 
 namespace MutinyBot.Modules
 {
-    [Group("meme"), Aliases("m")] // mute has
+    [Group("meme"), Hidden]
     public class MemeModule : MutinyBotModule
     {
-        [Command("teachart"), Aliases("tea")]
-        [Description("Returns the bot's ping to Discord.")] // displayed when help is invoked
-        public async Task Ping(CommandContext ctx) // this command takes no arguments
+        [Command("tea"), Aliases("chart")]
+        [Description("Returns the Anglo's favorite chart.")]
+        public async Task TeaChartCommand(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
             await ctx.RespondAsync($"https://i.imgur.com/6v0VFI4.png");
         }
+        // Its been 0 days since command channel
+        // bowling ball
     }
 }

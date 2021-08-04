@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 namespace MutinyBot.Modules
 {
-    public class MutinyGuildModule : MutinyBotModule
+    class MutinyModule
     {
-        [Command("invite"), Aliases("discordInvite")]
-        [Description("Get's the server Discord invite."), RequireGuild()]
-        public async Task GetInvite(CommandContext ctx)
+        [Command("invite"), Aliases("discord")]
+        [Description("Gets' Mutiny Gamings' Discord invite."), RequireGuild()]
+        public async Task GetMutinyInviteCommand(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
             await ctx.RespondAsync($"https://discord.gg/G4kH3sT");

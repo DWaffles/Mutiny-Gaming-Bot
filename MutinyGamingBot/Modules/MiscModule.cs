@@ -1,5 +1,6 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Entities;
 using System.Threading.Tasks;
 
 namespace MutinyBot.Modules
@@ -8,14 +9,14 @@ namespace MutinyBot.Modules
     {
         [Command("ping"), Aliases("p")]
         [Description("Returns the bot's ping to Discord.")]
-        public async Task Ping(CommandContext ctx)
+        public async Task PingCommand(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
             await ctx.RespondAsync($"Pong: {ctx.Client.Ping}ms");
         }
         [Command("coin"), Aliases("coinflip")]
         [Description("Flips a digital coin.")]
-        public async Task CoinFlip(CommandContext ctx)
+        public async Task CoinFlipCommand(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
             int result = Rand.Next(2);
@@ -24,6 +25,20 @@ namespace MutinyBot.Modules
             else //tails
                 await ctx.RespondAsync($"Tails, or something.");
         }
-        //disclaimer
+        [Command("profile"), Aliases("picture", "pfp")]
+        [Description("Gets a large version of someone's profile picture.")]
+        public async Task ProfileImageCommand(CommandContext ctx, DiscordUser user = null)
+        {
+            user ??= ctx.User;
+
+            await ctx.TriggerTypingAsync();
+            var embed = new DiscordEmbedBuilder()
+                .WithTitle($"{user.Username}#{user.Discriminator}")
+                .WithImageUrl(user.AvatarUrl)
+                .WithFooter($"User ID: {user.Id}")
+                .WithColor(GetBotColor());
+
+            await ctx.RespondAsync(embed: embed);
+        }
     }
 }

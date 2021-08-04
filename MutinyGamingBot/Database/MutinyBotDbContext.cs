@@ -1,7 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.Extensions.Logging;
-using MutinyBot.Entities;
+using MutinyBot.Models;
+using Newtonsoft.Json;
+using Serilog;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
@@ -9,45 +13,74 @@ namespace MutinyBot.Database
 {
     public class MutinyBotDbContext : DbContext
     {
-        public DbSet<UserEntity> Users { get; set; }
-        public DbSet<GuildEntity> Guilds { get; set; }
-        public DbSet<MemberEntity> Members { get; set; }
-        public DbSet<PetEntity> Pets { get; set; }
-        public MutinyBotDbContext()
+        public DbSet<PetModel> Pets { get; set; }
+        public DbSet<UserModel> Users { get; set; }
+        public DbSet<GuildModel> Guilds { get; set; }
+        public DbSet<MemberModel> Members { get; set; }
+        private static ILoggerFactory LoggerFactory => new LoggerFactory().AddSerilog();
+        public MutinyBotDbContext() { }
+        public void ApplyMigrations()
         {
             if (Database.GetPendingMigrations().Any())
+            {
+                var numMigrations = Database.GetPendingMigrations().Count();
+                Log.Information($"[DATABASE] Applying {numMigrations} migrations to the database.");
                 Database.Migrate();
+                SaveChanges();
+                Log.Information($"[DATABASE] {numMigrations} migrations have been applied to the database.");
+            }
+            else
+            {
+                Log.Information($"No pending migrations, database is up to date.");
+            }
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            Console.WriteLine("DATABASE");
+            DirectoryInfo dir = Directory.CreateDirectory("data");
+            string dbFilePath = Path.Combine(dir.Name, "MutinyBotDatabase.sqlite.db");
 
-            string dbPath = Path.Combine("data");
-            DirectoryInfo dir = Directory.CreateDirectory(dbPath);
-            Console.WriteLine(dir.FullName);
+            optionsBuilder.UseLoggerFactory(LoggerFactory);
 
-            string dbFilePath = Path.Combine(dir.FullName, "MutinyBotDatabase.sqlite.db");
-
-            _ = optionsBuilder.UseSqlite($"Filename={dbFilePath}");
-            _ = optionsBuilder.LogTo(Console.WriteLine, LogLevel.Warning);
+            optionsBuilder.UseSqlite($"Filename={dbFilePath}");
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            //UserEntity
-            _ = modelBuilder.Entity<UserEntity>().HasIndex(x => x.UserId).IsUnique();
-            _ = modelBuilder.Entity<UserEntity>().Property(x => x.UserId).IsRequired();
+            var iCollectionStringValueComparer = new ValueComparer<ICollection<string>>(
+                        (c1, c2) => c1.SequenceEqual(c2),
+                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                        c => c);
 
-            //GuildEntity
-            _ = modelBuilder.Entity<GuildEntity>().HasIndex(x => x.GuildId).IsUnique();
-            _ = modelBuilder.Entity<GuildEntity>().Property(x => x.GuildId).IsRequired();
+            var dictionaryUlongBoolValueComparer = new ValueComparer<Dictionary<ulong, bool>>(
+                        (c1, c2) => c1.SequenceEqual(c2),
+                        c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                        c => c.ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
 
-            //MemberEntity
-            _ = modelBuilder.Entity<MemberEntity>().HasIndex(x => new { x.MemberId, x.GuildId }).IsUnique(true);
-            _ = modelBuilder.Entity<MemberEntity>().Property(x => x.RoleDictionary).HasJsonConversion();
-
-            //Pet Entity
-            _ = modelBuilder.Entity<PetEntity>().Property(x => x.OwnerId).IsRequired();
-            _ = modelBuilder.Entity<PetEntity>().Property(x => x.GuildId).IsRequired();
+            modelBuilder.Entity<PetModel>(entity =>
+            {
+                entity.HasKey(m => m.PetId);
+            });
+            modelBuilder.Entity<UserModel>(entity =>
+            {
+                entity.HasKey(m => m.UserId);
+                entity.Property(m => m.UserId).ValueGeneratedNever();
+            });
+            modelBuilder.Entity<GuildModel>(entity =>
+            {
+                entity.HasKey(m => m.GuildId);
+                entity.Property(m => m.GuildId).ValueGeneratedNever();
+                entity.HasMany(m => m.Members).WithOne(m => m.Guild).HasForeignKey(m => m.GuildId).IsRequired();
+            });
+            modelBuilder.Entity<MemberModel>(entity =>
+            {
+                entity.HasKey(g => new { g.MemberId, g.GuildId });
+                entity.Ignore(entity => entity.LastMessageTimestamp);
+                entity.Property(entity => entity.LastMessageTimestampRaw);
+                entity.Property(entity => entity.RoleDictionary)
+                    .HasConversion(
+                    v => JsonConvert.SerializeObject(v),
+                    v => JsonConvert.DeserializeObject<Dictionary<ulong, bool>>(v),
+                    dictionaryUlongBoolValueComparer);
+            });
         }
     }
 }

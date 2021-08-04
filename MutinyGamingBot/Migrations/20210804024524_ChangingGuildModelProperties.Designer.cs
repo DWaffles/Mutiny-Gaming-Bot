@@ -8,31 +8,21 @@ using MutinyBot.Database;
 namespace MutinyBot.Migrations
 {
     [DbContext(typeof(MutinyBotDbContext))]
-    [Migration("20210426140800_PetService")]
-    partial class PetService
+    [Migration("20210804024524_ChangingGuildModelProperties")]
+    partial class ChangingGuildModelProperties
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "5.0.2");
+                .HasAnnotation("ProductVersion", "6.0.0-preview.5.21301.9");
 
-            modelBuilder.Entity("MutinyBot.Entities.GuildEntity", b =>
+            modelBuilder.Entity("MutinyBot.Models.GuildModel", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
                     b.Property<ulong>("GuildId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("GuildName")
-                        .HasColumnType("TEXT");
-
                     b.Property<ulong>("JoinLogChannelId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("JoinLogEnabled")
                         .HasColumnType("INTEGER");
 
                     b.Property<ulong>("ModerationLogChannelId")
@@ -41,27 +31,29 @@ namespace MutinyBot.Migrations
                     b.Property<ulong>("MuteRoleId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("Id");
+                    b.Property<bool>("TrackMemberRoles")
+                        .HasColumnType("INTEGER");
 
-                    b.HasIndex("GuildId")
-                        .IsUnique();
+                    b.Property<bool>("TrackMessageTimestamps")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("GuildId");
 
                     b.ToTable("Guilds");
                 });
 
-            modelBuilder.Entity("MutinyBot.Entities.MemberEntity", b =>
+            modelBuilder.Entity("MutinyBot.Models.MemberModel", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("CurrentMember")
+                    b.Property<ulong>("MemberId")
                         .HasColumnType("INTEGER");
 
                     b.Property<ulong>("GuildId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<ulong>("MemberId")
+                    b.Property<bool>("CurrentMember")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("LastMessageTimestampRaw")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("RoleDictionary")
@@ -73,20 +65,16 @@ namespace MutinyBot.Migrations
                     b.Property<int>("TimesMuted")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("VerifiedPetOwner")
-                        .HasColumnType("INTEGER");
+                    b.HasKey("MemberId", "GuildId");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("MemberId", "GuildId")
-                        .IsUnique();
+                    b.HasIndex("GuildId");
 
                     b.ToTable("Members");
                 });
 
-            modelBuilder.Entity("MutinyBot.Entities.PetEntity", b =>
+            modelBuilder.Entity("MutinyBot.Models.PetModel", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("PetId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -102,29 +90,38 @@ namespace MutinyBot.Migrations
                     b.Property<string>("PetName")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("Id");
+                    b.HasKey("PetId");
 
                     b.ToTable("Pets");
                 });
 
-            modelBuilder.Entity("MutinyBot.Entities.UserEntity", b =>
+            modelBuilder.Entity("MutinyBot.Models.UserModel", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("Banned")
-                        .HasColumnType("INTEGER");
-
                     b.Property<ulong>("UserId")
                         .HasColumnType("INTEGER");
 
-                    b.HasKey("Id");
+                    b.Property<bool>("IsBanned")
+                        .HasColumnType("INTEGER");
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasKey("UserId");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("MutinyBot.Models.MemberModel", b =>
+                {
+                    b.HasOne("MutinyBot.Models.GuildModel", "Guild")
+                        .WithMany("Members")
+                        .HasForeignKey("GuildId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Guild");
+                });
+
+            modelBuilder.Entity("MutinyBot.Models.GuildModel", b =>
+                {
+                    b.Navigation("Members");
                 });
 #pragma warning restore 612, 618
         }

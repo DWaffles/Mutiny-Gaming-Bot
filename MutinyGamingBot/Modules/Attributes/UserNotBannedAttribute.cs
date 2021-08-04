@@ -1,19 +1,21 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using Microsoft.Extensions.DependencyInjection;
 using MutinyBot.Services;
-using System;
 using System.Threading.Tasks;
 
-namespace MutinyBot.Modules.Attributes
+namespace MutinyBot.Modules
 {
+    /// <summary>
+    /// Defines that users bot banned cannot trigger this command.
+    /// </summary>
     public class UserNotBannedAttribute : CheckBaseAttribute
     {
         public override async Task<bool> ExecuteCheckAsync(CommandContext ctx, bool help)
         {
-            IServiceProvider serviceProvider = ctx.CommandsNext.Services;
-            IUserService userService = (IUserService)serviceProvider.GetService(typeof(IUserService));
-            var userEntity = await userService.GetOrCreateUserAsync(ctx.User.Id);
-            return !userEntity.Banned;
+            var userService = (UserService)ctx.Services.GetRequiredService(typeof(UserService));
+            var user = await userService.GetOrCreateUserAsync(ctx.User.Id);
+            return !user.IsBanned;
         }
     }
 }
