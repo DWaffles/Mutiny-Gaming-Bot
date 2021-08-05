@@ -14,6 +14,7 @@ namespace MutinyBot.Extensions
         private static string ConfirmId { get; } = "confirm_id";
         private static string DenyId { get; } = "deny_id";
         private static DiscordButtonComponent[] Buttons { get; } = new DiscordButtonComponent[] { new(ButtonStyle.Success, ConfirmId, "Yes"), new(ButtonStyle.Danger, DenyId, "No") };
+        private static DiscordButtonComponent[] DisabledButtons { get; } = new DiscordButtonComponent[] { new(ButtonStyle.Success, ConfirmId, "Yes", true), new(ButtonStyle.Danger, DenyId, "No", true) };
 
         /// <summary>
         /// Asks the user tied to the current context to confirm an action.
@@ -21,8 +22,8 @@ namespace MutinyBot.Extensions
         /// <param name="ctx">The CommandContext to wait on.</param>
         /// <param name="content">The action or query to ask the user.</param>
         /// <param name="timeoutOverride">Overrides the timeout set in DSharpPlus.Interactivity.InteractivityConfiguration.Timeout.</param>
-        /// <returns>A tuple containing a <see cref="ConfirmationResult"/> and the associated <see cref="ComponentInteractionCreateEventArgs"/>.</returns>
-        public static async Task<(ConfirmationResult, ComponentInteractionCreateEventArgs)> WaitForConfirmationInteraction(this CommandContext ctx, string content, TimeSpan? timeoutOverride = null)
+        /// <returns>A tuple containing the user response as <see cref="ConfirmationResult"/> and the <see cref="DiscordInteraction"/>.</returns>
+        public static async Task<(ConfirmationResult UserResponse, DiscordInteraction Interaction)> WaitForConfirmationInteraction(this CommandContext ctx, string content, bool deleteButtonsAfter = false, TimeSpan? timeoutOverride = null)
         {
             var builder = new DiscordMessageBuilder()
                 .WithContent(content)
@@ -30,27 +31,27 @@ namespace MutinyBot.Extensions
 
             var message = await ctx.RespondAsync(builder);
             builder.Clear();
+            builder.WithContent(content);
+            if (!deleteButtonsAfter)
+                builder.AddComponents(DisabledButtons); //test this
 
             var interactivityResult = await message.WaitForButtonAsync(user: ctx.User, timeoutOverride);
+            await message.ModifyAsync(builder);
+
             if (interactivityResult.TimedOut)
             {
-                builder.WithContent($"{content}\n\nRequest timed out.");
-                await message.ModifyAsync(builder);
                 return (ConfirmationResult.TimedOut, null);
             }
             else
             {
                 var buttonPress = interactivityResult.Result;
-                builder.WithContent(content);
-                await message.ModifyAsync(builder);
                 if (buttonPress.Id == DenyId)
                 {
-
-                    return (ConfirmationResult.Denied, buttonPress);
+                    return (ConfirmationResult.Denied, buttonPress.Interaction);
                 }
                 else
                 {
-                    return (ConfirmationResult.Confirmed, buttonPress);
+                    return (ConfirmationResult.Confirmed, buttonPress.Interaction);
                 }
             }
         }
@@ -61,8 +62,8 @@ namespace MutinyBot.Extensions
         /// <param name="ctx">The CommandContext to wait on.</param>
         /// <param name="embed">An embed containing the action or query to ask the user.</param>
         /// <param name="timeoutOverride">Overrides the timeout set in DSharpPlus.Interactivity.InteractivityConfiguration.Timeout.</param>
-        /// <returns>A tuple containing a <see cref="ConfirmationResult"/> and the associated <see cref="ComponentInteractionCreateEventArgs"/>.</returns>
-        public static async Task<(ConfirmationResult, ComponentInteractionCreateEventArgs)> WaitForConfirmationInteraction(this CommandContext ctx, DiscordEmbed embed, TimeSpan? timeoutOverride = null)
+        /// <returns>A tuple containing the user response as <see cref="ConfirmationResult"/> and the <see cref="DiscordInteraction"/>.</returns>
+        public static async Task<(ConfirmationResult UserResponse, DiscordInteraction Interaction)> WaitForConfirmationInteraction(this CommandContext ctx, DiscordEmbed embed, bool deleteButtonsAfter = false, TimeSpan? timeoutOverride = null)
         {
             var builder = new DiscordMessageBuilder()
                 .WithEmbed(embed)
@@ -71,24 +72,26 @@ namespace MutinyBot.Extensions
             var message = await ctx.RespondAsync(builder);
             builder.Clear();
             builder.AddEmbed(embed);
+            if (!deleteButtonsAfter)
+                builder.AddComponents(DisabledButtons); //test
 
             var interactivityResult = await message.WaitForButtonAsync(user: ctx.User, timeoutOverride);
+            await message.ModifyAsync(builder);
+
             if (interactivityResult.TimedOut)
             {
-                await message.ModifyAsync(builder);
                 return (ConfirmationResult.TimedOut, null);
             }
             else
             {
                 var buttonPress = interactivityResult.Result;
-                await message.ModifyAsync(builder);
                 if (buttonPress.Id == DenyId)
                 {
-                    return (ConfirmationResult.Denied, buttonPress);
+                    return (ConfirmationResult.Denied, buttonPress.Interaction);
                 }
                 else
                 {
-                    return (ConfirmationResult.Confirmed, buttonPress);
+                    return (ConfirmationResult.Confirmed, buttonPress.Interaction);
                 }
             }
         }

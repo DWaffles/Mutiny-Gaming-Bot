@@ -21,6 +21,8 @@ namespace MutinyBot
 
             Client.MessageCreated += Client_MessageCreated;
 
+            Client.ComponentInteractionCreated += Client_ComponentInteractionCreated;
+
             Client.GuildDownloadCompleted += OnGuildsCompleted;
             Client.GuildAvailable += OnGuildAvailable;
             Client.GuildCreated += OnGuildJoined;
@@ -48,6 +50,10 @@ namespace MutinyBot
         {
             RunTaskAsync(MemberMessageAsync(e.Guild, e.Message));
             return Task.CompletedTask;
+        }
+        private async Task Client_ComponentInteractionCreated(DiscordClient client, ComponentInteractionCreateEventArgs e)
+        {
+
         }
         private Task OnGuildsCompleted(DiscordClient client, GuildDownloadCompletedEventArgs e)
         {

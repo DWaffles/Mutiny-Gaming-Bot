@@ -11,6 +11,7 @@ namespace MutinyBot.Modules
 {
     [Group("moderation"), Aliases("mod")]
     [RequireUserPermissions(Permissions.ManageGuild)]
+    [RequireGuild]
     [Description("Commands relating to managing the moderation settings of the guild. Requires ManageGuild permissions.")]
     public class ModerationModule : MutinyBotModule
     {
@@ -56,52 +57,95 @@ namespace MutinyBot.Modules
             await ctx.RespondAsync(embed: embed);
         }
         [Command("joinlog"), Aliases("join", "jl")]
-        [Description("Allows setting and removal of the join log channel. Call this command when there is a channel set will ask for confirmation to remove it, " +
+        [Description("Allows setting and removal of the join log channel. Calling this when there is a channel set will ask for confirmation to remove it, " +
             "while passing a channel to this command will ask to update the join log channel.")]
-        public async Task JoinLogHandlerCommand(CommandContext ctx, DiscordChannel channel = null)
+        public async Task ChangeJoinLogChannelCommand(CommandContext ctx, [RemainingText] DiscordChannel newChannel = null)
         {
             await ctx.TriggerTypingAsync();
 
             var guildEntity = await GuildService.GetOrCreateGuildAsync(ctx.Guild.Id, false);
             var currentChannel = ctx.Guild.GetChannel(guildEntity.JoinLogChannelId);
 
-            if (channel == null && currentChannel != null) //disable joinlog
+            if (newChannel == null && currentChannel != null) //disable joinlog
             {
-                var (response, buttonPress) = await ctx.WaitForConfirmationInteraction($"Remove set join log for **{ctx.Guild.Name}**? Current join log channel: {currentChannel.Mention}.");
+                var (userResponse, interaction) = await ctx.WaitForConfirmationInteraction($"Remove set join log for **{ctx.Guild.Name}**? Current join log channel: {currentChannel.Mention}.");
 
-                if (response is ConfirmationResult.Confirmed)
+                if (userResponse is ConfirmationResult.Confirmed)
                 {
-                    /*await buttonPress.Interaction.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);*/
-
                     guildEntity.JoinLogChannelId = 0;
                     await GuildService.UpdateGuildAsync(guildEntity);
 
-                    await buttonPress.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, $":white_check_mark: Disabled joinlog for **{ctx.Guild.Name}**.");
-                    /*await buttonPress.Interaction.EditOriginalResponseAsync($":white_check_mark: Disabled joinlog for **{ctx.Guild.Name}**.");*/
+                    await interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, $":white_check_mark: Disabled joinlog for **{ctx.Guild.Name}**.");
                 }
+                else
+                    await interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
             }
-            else if (currentChannel != null && channel.Type != ChannelType.Text)
+            else if (currentChannel != null && newChannel.Type != ChannelType.Text)
             {
-                await ctx.RespondAsync($"{channel.Mention} is not a dedicated text channel and cannot be set as the join log channel.");
+                await ctx.RespondAsync($"{newChannel.Mention} is not a dedicated text channel and cannot be set as the join log channel.");
             }
             else // setting or updating join log
             {
-                channel ??= ctx.Channel;
+                newChannel ??= ctx.Channel;
 
-                string content = $"Set the join log channel for **{ctx.Guild.Name}** to {channel.Mention}?{(currentChannel != null ? $" Current join log channel is {currentChannel.Mention}" : null)}";
-                var (response, buttonPress) = await ctx.WaitForConfirmationInteraction(content);
+                string content = $"Set the join log channel for **{ctx.Guild.Name}** to {newChannel.Mention}?{(currentChannel != null ? $" Current join log channel is {currentChannel.Mention}" : null)}";
+                var (userResponse, interaction) = await ctx.WaitForConfirmationInteraction(content);
 
-                if (response is ConfirmationResult.Confirmed)
+                if (userResponse is ConfirmationResult.Confirmed)
                 {
-                    /*await buttonPress.Interaction.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);*/
-
-                    guildEntity.JoinLogChannelId = channel.Id;
+                    guildEntity.JoinLogChannelId = newChannel.Id;
                     await GuildService.UpdateGuildAsync(guildEntity);
 
-                    content = $":white_check_mark: {channel.Mention} is the new joinlog for **{ctx.Guild.Name}**.";
-                    await buttonPress.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, content);
-                    //await buttonPress.Interaction.EditOriginalResponseAsync($":white_check_mark: {channel.Mention} is the new joinlog for **{ctx.Guild.Name}**.");
+                    content = $":white_check_mark: {newChannel.Mention} is the new joinlog for **{ctx.Guild.Name}**.";
+                    await interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, content);
                 }
+                else
+                    await interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+            }
+        }
+        [Command("muterole"), Aliases("mute", "mr")]
+        [Description("Allows setting and removal of the mute role. Calling this without options when there is a role set will ask for confirmation to remove it, " +
+            "while passing a role to this command will ask to update the join log channel.")]
+        public async Task ChangeMuteRoleCommand(CommandContext ctx, [RemainingText] DiscordRole newRole = null)
+        {
+            await ctx.TriggerTypingAsync();
+
+            var guildEntity = await GuildService.GetOrCreateGuildAsync(ctx.Guild.Id, false);
+            var currentMuteRole = ctx.Guild.GetRole(guildEntity.MuteRoleId);
+
+            if (newRole == null && currentMuteRole != null) //clear mute role
+            {
+                var (userResponse, interaction) = await ctx.WaitForConfirmationInteraction($"Remove set mute role for **{ctx.Guild.Name}**? Current mute role: `@{currentMuteRole.Name}`.");
+
+                if (userResponse is ConfirmationResult.Confirmed)
+                {
+                    guildEntity.MuteRoleId = 0;
+                    await GuildService.UpdateGuildAsync(guildEntity);
+
+                    await interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, $":white_check_mark: Cleared mute role for **{ctx.Guild.Name}**.");
+                }
+                else
+                    await interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+            }
+            else if(newRole != null) // setting or updating join log
+            {
+                string content = $"Set the mute role for **{ctx.Guild.Name}** to `@{newRole.Name}`?{(currentMuteRole != null ? $" Current mute role is `@{currentMuteRole.Name}`" : null)}";
+                var (userResponse, interaction) = await ctx.WaitForConfirmationInteraction(content);
+
+                if (userResponse is ConfirmationResult.Confirmed)
+                {
+                    guildEntity.MuteRoleId = newRole.Id;
+                    await GuildService.UpdateGuildAsync(guildEntity);
+
+                    content = $":white_check_mark: `@{newRole.Name}` is the new joinlog for **{ctx.Guild.Name}**.";
+                    await interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, content);
+                }
+                else
+                    await interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+            }
+            else
+            {
+                await ctx.RespondAsync($"There is no mute role set for **{ctx.Guild.Name}**.");
             }
         }
         [Command("purge"), Aliases("delete", "p")]
@@ -123,7 +167,7 @@ namespace MutinyBot.Modules
             {
                 throw new NotImplementedException();
             }
-            [Command("role"), Aliases("r")]
+            [Command("roles"), Aliases("role", "r")]
             [Description("Enable or disable role tracking for the server. Role tracking stores the previous roles of a user.")]
             public async Task TrackRolesCommand(CommandContext ctx)
             {
@@ -132,9 +176,9 @@ namespace MutinyBot.Modules
                 var dbGuild = await GuildService.GetOrCreateGuildAsync(ctx.Guild.Id);
 
                 string content = $"{(dbGuild.TrackMemberRoles ? "Disable" : "Enable")} role tracking for **{ctx.Guild.Name}**?";
-                var (response, buttonPress) = await ctx.WaitForConfirmationInteraction(content);
+                var (userResponse, interaction) = await ctx.WaitForConfirmationInteraction(content);
 
-                if (response is ConfirmationResult.Confirmed)
+                if (userResponse is ConfirmationResult.Confirmed)
                 {
                     dbGuild.TrackMemberRoles = !dbGuild.TrackMemberRoles;
                     if (dbGuild.TrackMemberRoles)
@@ -145,8 +189,10 @@ namespace MutinyBot.Modules
                     await GuildService.UpdateGuildAsync(dbGuild);
 
                     content = $"{(dbGuild.TrackMemberRoles ? "Enabled" : "Disabled")} role tracking for **{ctx.Guild.Name}**.";
-                    await buttonPress.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, content);
+                    await interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, content);
                 }
+                else
+                    await interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
             }
             [Command("timestamps"), Aliases("timestamp", "t")]
             [Description("Enable or disable message timestamp tracking for the server. Timestamp tracking stores *only* the timestamp of a member's last message.")]

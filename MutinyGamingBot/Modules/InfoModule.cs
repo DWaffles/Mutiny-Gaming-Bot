@@ -17,7 +17,7 @@ namespace MutinyBot.Modules
         private string DateTimeFormat { get; } = "ddd MMM dd, yyyy HH:mm tt";
 
         [Command("user"), Aliases("u"), RequireGuild]
-        public async Task MemberInformationCommand(CommandContext ctx, DiscordMember member = null)
+        public async Task MemberInformationCommand(CommandContext ctx, [RemainingText] DiscordMember member = null)
         {
             await ctx.TriggerTypingAsync();
             await ctx.RespondAsync(embed: await GetMemberInfoEmbedAsync(ctx.Guild, member ?? ctx.Member));

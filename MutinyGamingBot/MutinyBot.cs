@@ -79,8 +79,13 @@ namespace MutinyBot
             Client.UseInteractivity(new InteractivityConfiguration()
             {
                 Timeout = TimeSpan.FromMinutes(1),
+                PollBehaviour = PollBehaviour.KeepEmojis,
                 PaginationBehaviour = PaginationBehaviour.WrapAround,
                 ButtonBehavior = ButtonPaginationBehavior.Disable,
+
+                ResponseBehavior = InteractionResponseBehavior.Ack,
+                AckPaginationButtons = true,
+
                 PaginationButtons = new PaginationButtons()
                 {
                     SkipLeft = new DiscordButtonComponent(ButtonStyle.Primary, "first", "First"/*, emoji: new DiscordComponentEmoji("⏮")*/),

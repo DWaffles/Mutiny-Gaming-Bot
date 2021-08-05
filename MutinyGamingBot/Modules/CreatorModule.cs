@@ -39,7 +39,7 @@ namespace MutinyBot.Modules
             await ctx.RespondAsync(message);
         }
         [Command("botban")]
-        public async Task BotBanHandlerCommand(CommandContext ctx, DiscordUser user)
+        public async Task BotBanHandlerCommand(CommandContext ctx, [RemainingText] DiscordUser user)
         {
             DiscordEmbed embed;
             var userEntity = await UserService.GetOrCreateUserAsync(user.Id);
@@ -49,18 +49,25 @@ namespace MutinyBot.Modules
             else
                 embed = await GetRevokeBanConfirmEmbed(ctx, user);
 
-            var (response, buttonPress) = await ctx.WaitForConfirmationInteraction(embed);
+            var (userResponse, interaction) = await ctx.WaitForConfirmationInteraction(embed);
 
-            if (response is ConfirmationResult.Confirmed)
+            if (userResponse is ConfirmationResult.Confirmed)
             {
-                await buttonPress.Interaction.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
+                await interaction.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
 
                 userEntity.IsBanned = !userEntity.IsBanned;
                 await UserService.UpdateUserAsync(userEntity);
 
                 string content = userEntity.IsBanned ? ":white_check_mark: Banned" : ":white_check_mark: Ban Revoked";
-                await buttonPress.Interaction.EditOriginalResponseAsync(content);
+                await interaction.EditOriginalResponseAsync(content);
             }
+            else
+                await interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
+        }
+        [Command("botban")]
+        public async Task BotBanHandlerCommand(CommandContext ctx, DiscordMember memeber)
+        {
+            await BotBanHandlerCommand(ctx, memeber as DiscordUser);
         }
         //EXPORT
         //PETOWNERS

@@ -91,9 +91,6 @@
 
 ## Logging
 
-- Implement consistent logging method through out program
-- Log level definable via config
-
 ## README.md
 
 - Update with how to compile/run

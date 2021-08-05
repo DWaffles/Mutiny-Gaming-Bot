@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace MutinyBot.Modules
 {
-    [Group("tag")]
+    [Group("tag"), Aliases("tags")]
     [Description("Tags")]
     public class TagModule : MutinyBotModule
     {
