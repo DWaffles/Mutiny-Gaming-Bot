@@ -10,11 +10,12 @@ namespace MutinyBot.Modules
     public class TagModule : MutinyBotModule
     {
         [GroupCommand()]
-        public async Task TagCommand(CommandContext ctx)
+        public async Task TagCommand(CommandContext ctx) 
         {
             await ctx.TriggerTypingAsync();
             throw new NotImplementedException();
         }
+        //Don't mention people or @everyone/@here
         //raw
         //create
         //edit/update

@@ -3,6 +3,7 @@
 </p>
 <p align="center">
     <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/DWaffles/Mutiny-Gaming-Bot/.NET">
+	<img alt="Lines of code" src="https://img.shields.io/tokei/lines/github/dwaffles/mutiny-gaming-bot">
     <h1 align="center">Mutiny-Gaming-Bot</h1>
 </p>
 
@@ -12,16 +13,6 @@ Mutiny Gaming Bot, or MG Bot, is a Discord bot created for the online community 
 ## Current Status
 
 MGBot is still under development as core features have not been fully implemented.
-
-## Current Tasks
-
-- Implement mute commands
-- Fully implement guild moderation settings and more guild administration helpers
-- Allow more user functionality like birthdays or user nationalities
-- Implement commands for Mutiny specific information
-- Re-implement pets
-- Implement tag module
-- Implement image module
 
 ## Built Using
 

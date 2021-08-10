@@ -33,7 +33,7 @@ namespace MutinyBot.Extensions
             builder.Clear();
             builder.WithContent(content);
             if (!deleteButtonsAfter)
-                builder.AddComponents(DisabledButtons); //test this
+                builder.AddComponents(DisabledButtons);
 
             var interactivityResult = await message.WaitForButtonAsync(user: ctx.User, timeoutOverride);
             await message.ModifyAsync(builder);
@@ -73,7 +73,7 @@ namespace MutinyBot.Extensions
             builder.Clear();
             builder.AddEmbed(embed);
             if (!deleteButtonsAfter)
-                builder.AddComponents(DisabledButtons); //test
+                builder.AddComponents(DisabledButtons);
 
             var interactivityResult = await message.WaitForButtonAsync(user: ctx.User, timeoutOverride);
             await message.ModifyAsync(builder);

@@ -14,5 +14,6 @@ namespace MutinyBot.Modules
             await ctx.RespondAsync($"https://discord.gg/G4kH3sT");
         }
         //trainings
+        //sign up
     }
 }

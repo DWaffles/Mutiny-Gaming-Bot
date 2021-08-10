@@ -25,7 +25,7 @@ namespace MutinyBot.Modules
             [Description("Given reason for muting the member."), RemainingText] string reason = null)
         {
             await ctx.TriggerTypingAsync();
-            await ctx.RespondAsync($"Pong: {ctx.Client.Ping}ms");
+            await MuteCommandHandler(ctx, memberToMute, TimeSpan.FromHours(24), reason);
         }
         [Command("permanent"), Aliases("perm", "p")]
         [Description("Applies the servers mute role to the member for an indefinite period of time.")]
@@ -34,15 +34,69 @@ namespace MutinyBot.Modules
             [Description("Given reason for muting the member."), RemainingText] string reason = null)
         {
             await ctx.TriggerTypingAsync();
+            await MuteCommandHandler(ctx, memberToMute, null, reason);
+        }
+        [Command("temporary"), Aliases("temp", "t")]
+        [Description("Applies the servers mute role to the member for the given period of time.")]
+        public async Task TemporaryMuteCommand(CommandContext ctx,
+            [Description("Length of time to mute the member for. Supports h for hours, d for days, m for minutes, s for seconds. " +
+            "Ex: `5h` -> 5 hours; `2d5h` for 2 days & 5 hours; `6h30m` -> for 6 hours 30 minutes.")] TimeSpan muteDuration,
+            [Description("Mention the member to be muted.")] DiscordMember memberToMute,
+            [Description("Given reason for muting the member."), RemainingText] string reason = null)
+        {
+            await ctx.TriggerTypingAsync();
+            await MuteCommandHandler(ctx, memberToMute, muteDuration, reason);
+        }
+        [Command("list"), Aliases("l")]
+        [Description("Gets the list of current mutes.")]
+        public async Task ListActiveMutesCommand(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+        }
 
-            var checkResult = await RunCommandChecksAsync(ctx.Guild, memberToMute);
-            if(!checkResult.ChecksPassed)
+        #region HelperFunctions
+        private async Task<(bool ChecksPassed, DiscordRole MuteRole, MemberModel MemberModel, string ErrorMessage)> RunCommandChecksAsync(DiscordGuild guild, DiscordMember memberToMute, TimeSpan timeForMute)
+        {
+            var memberModel = await MemberService.GetOrCreateMemberAsync(guild.Id, memberToMute.Id);
+            var guildModel = memberModel.Guild;
+
+            if (guildModel.MuteRoleId == 0)
+            {
+                return (false, null, memberModel, $"{guild.Name} does not have a set mute role.");
+            }
+
+            var muteRole = guild.GetRole(guildModel.MuteRoleId);
+            if (muteRole is null)
+            {
+                return (false, null, memberModel, $"I am unable to retrieve {guild.Name}'s set mute role.");
+            }
+            else if (muteRole.Position >= guild.CurrentMember.Roles.Max(role => role.Position))
+            {
+                return (false, muteRole, memberModel, $"`@{muteRole.Name}` is higher or the same as my highest role.");
+            }
+            else if(memberToMute.Roles.Contains(muteRole))
+            {
+                return (false, muteRole, memberModel, $"**{memberToMute.Username}#{memberToMute.Discriminator}** already has the set mute role of `@{muteRole.Name}`.");
+            }
+            else if (timeForMute.CompareTo(TimeSpan.Zero) < 0)
+            {
+                return (false, muteRole, memberModel, $"The given time is negative or otherwise invalid.");
+            }
+            else
+            {
+                return (true, muteRole, memberModel, String.Empty);
+            }
+        }
+        private async Task MuteCommandHandler(CommandContext ctx, DiscordMember memberToMute, TimeSpan? timeForMute, string reason = null)
+        {
+            var checkResult = await RunCommandChecksAsync(ctx.Guild, memberToMute, TimeSpan.Zero);
+            if (!checkResult.ChecksPassed)
             {
                 await ctx.RespondAsync(checkResult.ErrorMessage);
                 return;
             }
 
-            var embed = GetMuteConfirmationEmbed(ctx.Guild, ctx.Member, memberToMute, checkResult.MemberModel, default, reason);
+            var embed = GetMuteConfirmationEmbed(ctx.Guild, ctx.Member, memberToMute, checkResult.MemberModel, timeForMute, reason);
             var (userResponse, interaction) = await ctx.WaitForConfirmationInteraction(embed);
 
             if (userResponse is ConfirmationResult.TimedOut || userResponse is ConfirmationResult.Denied)
@@ -57,62 +111,25 @@ namespace MutinyBot.Modules
                 checkResult.MemberModel.TimesMuted++;
                 await MemberService.UpdateMemberAsync(checkResult.MemberModel);
 
-                var moderationChannel = ctx.Guild.GetChannel(checkResult.GuildModel.ModerationLogChannelId);
-                if (checkResult.GuildModel.ModerationLogChannelId != 0 && moderationChannel != null)
+                var warned = true;
+                try // DM member
                 {
-                    //send moderation message
+                    var dmChannel = await memberToMute.CreateDmChannelAsync();
+                    await dmChannel.SendMessageAsync("warn");
+                }
+                catch
+                {
+                    warned = false;
                 }
 
+                var moderationChannel = ctx.Guild.GetChannel(checkResult.MemberModel.Guild.ModerationLogChannelId);
+                if (moderationChannel != null)
+                {
+                    await moderationChannel.SendMessageAsync($"Test. {(warned ? "warned" : "not warned.")}");
+                    //send moderation message
+                }
                 await interaction.EditOriginalResponseAsync("Muted");
             }
-        }
-        [Command("temporary"), Aliases("temp", "t")]
-        [Description("Applies the servers mute role to the member for the given period of time.")]
-        public async Task TemporaryMuteCommand(CommandContext ctx,
-            [Description("Length of time to mute the member for. Supports h for hours, d for days, m for minutes, s for seconds. " +
-            "Ex: `5h` -> 5 hours; `2d5h` for 2 days & 5 hours; `6h30m` -> for 6 hours 30 minutes.")] TimeSpan muteDuration,
-            [Description("Mention the member to be muted.")] DiscordMember memberToMute,
-            [Description("Given reason for muting the member."), RemainingText] string reason = null)
-        {
-            await ctx.TriggerTypingAsync();
-            await ctx.RespondAsync($"{muteDuration.TotalDays} days, {muteDuration.TotalHours} hours, {muteDuration.TotalMinutes} minutes, {muteDuration.Seconds} seconds");
-        }
-        [Command("list"), Aliases("l")]
-        [Description("Gets the list of current mutes.")]
-        public async Task ListActiveMutesCommand(CommandContext ctx)
-        {
-            await ctx.TriggerTypingAsync();
-        }
-
-        #region HelperFunctions
-        private async Task<(bool ChecksPassed, DiscordRole MuteRole, GuildModel GuildModel, MemberModel MemberModel, string ErrorMessage)> RunCommandChecksAsync(DiscordGuild guild, DiscordMember memberToMute)
-        {
-            var guildModel = await GuildService.GetOrCreateGuildAsync(guild.Id);
-            var memberModel = await MemberService.GetOrCreateMemberAsync(guild.Id, memberToMute.Id);
-
-            if (guildModel.MuteRoleId == 0)
-            {
-                return (false, null, guildModel, memberModel, $"{guild.Name} does not have a set mute role.");
-            }
-
-            var muteRole = guild.GetRole(guildModel.MuteRoleId);
-            if (muteRole is null)
-            {
-                return (false, null, guildModel, memberModel, $"I am unable to retrieve {guild.Name}'s set mute role.");
-            }
-            else if (muteRole.Position >= guild.CurrentMember.Roles.Max(role => role.Position))
-            {
-                return (false, muteRole, guildModel, memberModel, $"`@{muteRole.Name}` is higher or the same as my highest role.");
-            }
-            else if(memberToMute.Roles.Contains(muteRole))
-            {
-                return (false, muteRole, guildModel, memberModel, $"**{memberToMute.Username}#{memberToMute.Discriminator}** already has the set mute role of `@{muteRole.Name}`.");
-            }
-            else
-            {
-                return (true, muteRole, guildModel, memberModel, String.Empty);
-            }
-
         }
         private DiscordEmbed GetMuteConfirmationEmbed(DiscordGuild guild, DiscordMember initatingMember, DiscordMember memberToMute, MemberModel memberToMuteModel, TimeSpan? timeForMute, string reason)
         {
