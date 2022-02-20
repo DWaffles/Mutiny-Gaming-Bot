@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace MutinyBot.Modules
 {
+    [CommandCategory(CommandCategories.Information)]
     public class InfoModule : MutinyBotModule
     {
         private string DateTimeFormat { get; } = "ddd MMM dd, yyyy HH:mm tt";
@@ -21,6 +22,12 @@ namespace MutinyBot.Modules
         {
             await ctx.TriggerTypingAsync();
             await ctx.RespondAsync(embed: await GetMemberInfoEmbedAsync(ctx.Guild, member ?? ctx.Member));
+        }
+        [Command("user")]
+        public async Task MemberInformationCommand(CommandContext ctx, [RemainingText] DiscordUser user = null)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync(embed: GetUserInfoEmbed(user ?? ctx.User));
         }
         [Command("role"), Aliases("r"), RequireGuild]
         public async Task RoleInformationCommand(CommandContext ctx, [RemainingText] DiscordRole role)
@@ -40,6 +47,22 @@ namespace MutinyBot.Modules
         {
             await ctx.TriggerTypingAsync();
             await ctx.RespondAsync(embed: GetGuildInfoEmbed(ctx.Guild));
+        }
+        [Command("profile"), Aliases("picture", "pfp")]
+        [Description("Gets a large version of someone's profile picture.")]
+        public async Task ProfileImageCommand(CommandContext ctx, DiscordUser user = null)
+        {
+            user ??= ctx.User;
+
+            await ctx.TriggerTypingAsync();
+            var embed = new DiscordEmbedBuilder()
+                .WithDescription(user.AvatarUrl)
+                .WithTitle($"{user.Username}#{user.Discriminator}")
+                .WithImageUrl(user.AvatarUrl)
+                .WithFooter($"User ID: {user.Id}")
+                .WithColor(GetBotColor());
+
+            await ctx.RespondAsync(embed: embed);
         }
 
         #region EmbedFunctions
@@ -72,6 +95,22 @@ namespace MutinyBot.Modules
                 var oldRoles = memberModel.RoleDictionary.Where(x => x.Value is false).Select(x => $"<@&{x.Key}>");
                 embed.AddField($"Previous Roles ({oldRoles.Count()})", String.Join(", ", oldRoles));
             }
+
+            return embed;
+        }
+        private DiscordEmbed GetUserInfoEmbed(DiscordUser user)
+        {
+            string timeCreated = $"<t:{user.CreationTimestamp.ToUnixTimeSeconds()}:f>";
+
+            string accountAge = (DateTime.Now - user.CreationTimestamp).Humanize(3, maxUnit: TimeUnit.Year, minUnit: TimeUnit.Minute);
+            string description = $"{user.Mention} created their account {accountAge} ago.";
+
+            var embed = new DiscordEmbedBuilder()
+                .WithAuthor($"{user.Username}'s Information", iconUrl: $"{user.AvatarUrl}")
+                .WithDescription(description)
+                .AddField("Created", timeCreated, true)
+                .WithFooter("Times are localized via Discord.")
+                .WithColor(GetBotColor());
 
             return embed;
         }

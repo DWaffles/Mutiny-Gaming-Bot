@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MutinyBot.Common;
 using MutinyBot.Database;
+using MutinyBot.Modules;
 using MutinyBot.Services;
 using Serilog;
 using System;
@@ -88,22 +89,22 @@ namespace MutinyBot
 
                 PaginationButtons = new PaginationButtons()
                 {
-                    SkipLeft = new DiscordButtonComponent(ButtonStyle.Primary, "first", "First"/*, emoji: new DiscordComponentEmoji("⏮")*/),
-                    Left = new DiscordButtonComponent(ButtonStyle.Success, "left", "Left"/*, emoji: new DiscordComponentEmoji("◀")*/),
-                    Stop = new DiscordButtonComponent(ButtonStyle.Danger, "stop", "Stop"/*, emoji: new DiscordComponentEmoji("⏹")*/),
-                    Right = new DiscordButtonComponent(ButtonStyle.Success, "right", "Right"/*, emoji: new DiscordComponentEmoji("▶")*/),
-                    SkipRight = new DiscordButtonComponent(ButtonStyle.Primary, "last", "Last"/*, emoji: new DiscordComponentEmoji("⏭")*/),
+                    SkipLeft = new DiscordButtonComponent(ButtonStyle.Primary, "first", "First"),
+                    Left = new DiscordButtonComponent(ButtonStyle.Success, "left", "Left"),
+                    Stop = new DiscordButtonComponent(ButtonStyle.Danger, "stop", "Stop"),
+                    Right = new DiscordButtonComponent(ButtonStyle.Success, "right", "Right"),
+                    SkipRight = new DiscordButtonComponent(ButtonStyle.Primary, "last", "Last"),
                 }
             });
 
             RegisterEvents(); //Registering events
 
-            Commands.SetHelpFormatter<MutinyBotHelpFormatter>(); //Registering custom help formatter
+            Commands.SetHelpFormatter<CustomHelpFormatter>(); //Registering custom help formatter
             Commands.RegisterCommands(Assembly.GetExecutingAssembly()); //Registering commands from all modules
         }
         public async Task ConnectAsync()
         {
-            var activity = new DiscordActivity($"[{string.Join(", ", Config.Discord.CommandPrefixes)}]{(Config.Discord.BotStatus != null ? $" {Config.Discord.BotStatus}" : "help")}", ActivityType.Playing);
+            var activity = new DiscordActivity($"[{string.Join(", ", Config.Discord.CommandPrefixes)}]{(Config.Discord.BotStatus ?? "help")}", ActivityType.Playing);
             await Client.ConnectAsync(activity);
             await Task.Delay(-1);
         }

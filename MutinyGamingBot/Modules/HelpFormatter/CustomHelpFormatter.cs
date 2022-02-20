@@ -5,14 +5,17 @@ using DSharpPlus.CommandsNext.Entities;
 using DSharpPlus.Entities;
 using Humanizer;
 using MutinyBot.Extensions;
+using MutinyBot.Modules;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
-namespace MutinyBot
+namespace MutinyBot.Modules
 {
-    public class MutinyBotHelpFormatter : BaseHelpFormatter
+    public class CustomHelpFormatter : BaseHelpFormatter
     {
         public DiscordEmbedBuilder EmbedBuilder { get; }
         private Command Command { get; set; }
@@ -22,7 +25,7 @@ namespace MutinyBot
         /// Creates a new default help formatter.
         /// </summary>
         /// <param name="ctx">Context in which this formatter is being invoked.</param>
-        public MutinyBotHelpFormatter(CommandContext ctx, MutinyBot mutinyBot)
+        public CustomHelpFormatter(CommandContext ctx, MutinyBot mutinyBot)
             : base(ctx)
         {
             this.EmbedBuilder = new DiscordEmbedBuilder()
@@ -94,25 +97,38 @@ namespace MutinyBot
             }
             else
             {
-                var groupedCommands = new List<CommandGroup>();
-                var unGroupCommands = new List<string>();
-                foreach (var command in subcommands)
+                this.EmbedBuilder.WithDescription("Listing all top-level commands and groups. Specify a command to see more information. Test");
+
+                var categories = subcommands
+                    .Where(x =>
+                        (x.Module.ModuleType.GetCustomAttribute<CommandCategoryAttribute>()
+                        ?? x.CustomAttributes.SingleOrDefault(x => x is CommandCategoryAttribute)) != null)
+                    .GroupBy(x =>
+                        (x.Module.ModuleType.GetCustomAttribute<CommandCategoryAttribute>()
+                        ?? (CommandCategoryAttribute)x.CustomAttributes.SingleOrDefault(x => x is CommandCategoryAttribute)).CommandCategory)
+                    .OrderBy(x => CommandCategories.CategoryOrder.IndexOf(x.Key));
+
+                var otherCommands = subcommands.Where(x =>
+                    (x.Module.ModuleType.GetCustomAttribute<CommandCategoryAttribute>()
+                    ?? x.CustomAttributes.SingleOrDefault(x => x is CommandCategoryAttribute)) == null);
+
+                foreach (var category in categories)
                 {
-                    switch (command)
+                    List<string> list = new();
+                    foreach (var command in category)
                     {
-                        case CommandGroup group:
-                            groupedCommands.Add(group);
-                            break;
-                        default:
-                            unGroupCommands.Add(command.Name);
-                            break;
+                        if (command is CommandGroup group)
+                        {
+                            if (group.IsExecutableWithoutSubcommands)
+                                list.Add(Formatter.InlineCode(group.QualifiedName));
+                            list.AddRange(group.Children.Select(x => Formatter.InlineCode(x.QualifiedName)));
+                        }
+                        else
+                            list.Add(Formatter.InlineCode(command.QualifiedName));
                     }
+                    this.EmbedBuilder.AddField(category.Key.CapitalizeFirst(), string.Join(", ", list), false);
                 }
-                foreach (var group in groupedCommands.OrderBy(x => x.Children.Count))
-                {
-                    this.EmbedBuilder.AddField(group.QualifiedName.CapitalizeFirst(), (group.IsExecutableWithoutSubcommands ? $"`{group.Name}`, " : null) + string.Join(", ", group.Children.Select(x => Formatter.InlineCode(x.Name))), false);
-                }
-                this.EmbedBuilder.AddField("Other Commands", string.Join(", ", unGroupCommands.Select(x => Formatter.InlineCode(x))), false);
+                this.EmbedBuilder.AddField("Other Commands", string.Join(", ", otherCommands.Select(x => Formatter.InlineCode(x.QualifiedName))), false);
             }
             return this;
         }
@@ -123,9 +139,6 @@ namespace MutinyBot
         /// <returns>Data for the help message.</returns>
         public override CommandHelpMessage Build()
         {
-            if (this.Command == null)
-                this.EmbedBuilder.WithDescription("Listing all top-level commands and groups. Specify a command to see more information.");
-
             return new CommandHelpMessage(embed: this.EmbedBuilder.Build());
         }
     }

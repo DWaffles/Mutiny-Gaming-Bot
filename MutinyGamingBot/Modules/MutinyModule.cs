@@ -4,7 +4,8 @@ using System.Threading.Tasks;
 
 namespace MutinyBot.Modules
 {
-    class MutinyModule
+    [CommandCategory(CommandCategories.Mutiny)]
+    public class MutinyModule : MutinyBotModule
     {
         [Command("invite"), Aliases("discord")]
         [Description("Gets' Mutiny Gamings' Discord invite."), RequireGuild()]

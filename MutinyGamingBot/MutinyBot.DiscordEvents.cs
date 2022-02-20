@@ -46,7 +46,8 @@ namespace MutinyBot
         }
         private Task Client_MessageCreated(DiscordClient client, MessageCreateEventArgs e)
         {
-            RunTaskAsync(MemberMessageAsync(e.Guild, e.Message));
+            if (e.Guild != null)
+                RunTaskAsync(MemberMessageAsync(e.Guild, e.Message));
             return Task.CompletedTask;
         }
         private Task OnGuildsCompleted(DiscordClient client, GuildDownloadCompletedEventArgs e)

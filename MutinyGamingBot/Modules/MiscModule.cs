@@ -8,6 +8,7 @@ namespace MutinyBot.Modules
     public class MiscModule : MutinyBotModule
     {
         [Command("ping"), Aliases("p")]
+        [CommandCategory(CommandCategories.Bot)]
         [Description("Returns the bot's ping to Discord.")]
         public async Task PingCommand(CommandContext ctx)
         {
@@ -25,20 +26,6 @@ namespace MutinyBot.Modules
             else //tails
                 await ctx.RespondAsync($"Tails, or something.");
         }
-        [Command("profile"), Aliases("picture", "pfp")]
-        [Description("Gets a large version of someone's profile picture.")]
-        public async Task ProfileImageCommand(CommandContext ctx, DiscordUser user = null)
-        {
-            user ??= ctx.User;
-
-            await ctx.TriggerTypingAsync();
-            var embed = new DiscordEmbedBuilder()
-                .WithTitle($"{user.Username}#{user.Discriminator}")
-                .WithImageUrl(user.AvatarUrl)
-                .WithFooter($"User ID: {user.Id}")
-                .WithColor(GetBotColor());
-
-            await ctx.RespondAsync(embed: embed);
-        }
+        
     }
 }
