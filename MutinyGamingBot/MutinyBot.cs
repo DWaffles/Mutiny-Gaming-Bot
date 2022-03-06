@@ -5,6 +5,7 @@ using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Enums;
 using DSharpPlus.Interactivity.EventHandling;
 using DSharpPlus.Interactivity.Extensions;
+using DSharpPlus.SlashCommands;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MutinyBot.Common;
@@ -13,7 +14,9 @@ using MutinyBot.Modules;
 using MutinyBot.Services;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -25,6 +28,7 @@ namespace MutinyBot
         private IServiceProvider Services { get; }
         private DiscordClient Client { get; }
         private CommandsNextExtension Commands { get; }
+        private SlashCommandsExtension SlashCommands { get; }
         public MutinyBot(MutinyBotConfig config)
         {
             Config = config;
@@ -77,6 +81,11 @@ namespace MutinyBot
                 Services = Services
             });
 
+            SlashCommands = Client.UseSlashCommands(new SlashCommandsConfiguration()
+            {
+                Services = Services
+            });
+
             Client.UseInteractivity(new InteractivityConfiguration()
             {
                 Timeout = TimeSpan.FromMinutes(1),
@@ -97,10 +106,23 @@ namespace MutinyBot
                 }
             });
 
-            RegisterEvents(); //Registering events
+            RegisterGatewayEvents();
+            RegisterCommandEvents();
 
             Commands.SetHelpFormatter<CustomHelpFormatter>(); //Registering custom help formatter
             Commands.RegisterCommands(Assembly.GetExecutingAssembly()); //Registering commands from all modules
+
+            //SlashCommands.RegisterCommands<SlashModule>(); //Clears slash commands globally
+            //SlashCommands.RegisterCommands(typeof(SlashModule), /* ID */); //Clears slash commands per guild
+
+            foreach (Type type in
+                Assembly.GetAssembly(typeof(SlashModule)).GetTypes()
+                .Where(myType => myType.IsClass && !myType.IsAbstract && myType.IsSubclassOf(typeof(SlashModule))))
+            {
+                Array.ForEach(Config.Discord.AuthorizedServerIds, e => SlashCommands.RegisterCommands(type, e));
+                if (Config.Discord.MutinyGuildId != 0)
+                    SlashCommands.RegisterCommands(type, Config.Discord.MutinyGuildId);
+            }
         }
         public async Task ConnectAsync()
         {

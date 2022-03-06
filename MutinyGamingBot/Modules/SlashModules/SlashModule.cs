@@ -1,70 +1,31 @@
-﻿using DSharpPlus.CommandsNext;
+﻿using DSharpPlus;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
 using DSharpPlus.Interactivity.Extensions;
+using DSharpPlus.SlashCommands;
 using Humanizer;
 using Humanizer.Localisation;
+using MutinyBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace MutinyBot.Modules
 {
-    [CommandCategory(CommandCategories.Information)]
-    public class InfoModule : MutinyBotModule
+    [UserNotBannedSlash]
+    public class SlashModule : ApplicationCommandModule
     {
-        [Command("user"), Aliases("u"), RequireGuild]
-        public async Task MemberInformationCommand(CommandContext ctx, [RemainingText] DiscordMember member = null)
+        public GuildService GuildService { protected get; set; }
+        public MemberService MemberService { protected get; set; }
+        public MutinyBot MutinyBot { protected get; set; }
+        protected DiscordColor GetBotColor()
         {
-            await ctx.TriggerTypingAsync();
-            await ctx.RespondAsync(embed: await GetMemberInfoEmbedAsync(ctx.Guild, member ?? ctx.Member));
+            return MutinyBot.GetBotColor();
         }
-        [Command("user")]
-        public async Task MemberInformationCommand(CommandContext ctx, [RemainingText] DiscordUser user = null)
-        {
-            await ctx.TriggerTypingAsync();
-            await ctx.RespondAsync(embed: GetUserInfoEmbed(user ?? ctx.User));
-        }
-        [Command("role"), Aliases("r"), RequireGuild]
-        public async Task RoleInformationCommand(CommandContext ctx, [RemainingText] DiscordRole role)
-        {
-            await ctx.TriggerTypingAsync();
-            var result = await GetRoleInfoEmbedAsync(ctx.Guild, role);
-            if (result.Length == 1)
-                await ctx.RespondAsync(embed: result[0].Embed);
-            else
-            {
-                var interactivity = ctx.Client.GetInteractivity();
-                await interactivity.SendPaginatedMessageAsync(ctx.Channel, ctx.User, result, buttons: null);
-            }
-        }
-        [Command("guild"), Aliases("g"), RequireGuild]
-        public async Task GuildInformationCommand(CommandContext ctx)
-        {
-            await ctx.TriggerTypingAsync();
-            await ctx.RespondAsync(embed: GetGuildInfoEmbed(ctx.Guild));
-        }
-        [Command("profile"), Aliases("picture", "pfp")]
-        [Description("Gets a large version of someone's profile picture.")]
-        public async Task ProfileImageCommand(CommandContext ctx, DiscordUser user = null)
-        {
-            user ??= ctx.User;
-
-            await ctx.TriggerTypingAsync();
-            var embed = new DiscordEmbedBuilder()
-                .WithDescription(user.AvatarUrl)
-                .WithTitle($"{user.Username}#{user.Discriminator}")
-                .WithImageUrl(user.AvatarUrl)
-                .WithFooter($"User ID: {user.Id}")
-                .WithColor(GetBotColor());
-
-            await ctx.RespondAsync(embed: embed);
-        }
-
-        #region EmbedFunctions
-        private async Task<DiscordEmbed> GetMemberInfoEmbedAsync(DiscordGuild guild, DiscordMember member)
+        public async Task<DiscordEmbed> GetMemberInfoEmbedAsync(DiscordGuild guild, DiscordMember member)
         {
             var memberTask = MemberService.GetOrCreateMemberAsync(guild.Id, member.Id);
             string timeJoined = $"<t:{member.JoinedAt.ToUnixTimeSeconds()}:f>";
@@ -96,7 +57,7 @@ namespace MutinyBot.Modules
 
             return embed;
         }
-        private DiscordEmbed GetUserInfoEmbed(DiscordUser user)
+        public DiscordEmbed GetUserInfoEmbed(DiscordUser user)
         {
             string timeCreated = $"<t:{user.CreationTimestamp.ToUnixTimeSeconds()}:f>";
 
@@ -112,7 +73,7 @@ namespace MutinyBot.Modules
 
             return embed;
         }
-        private async Task<Page[]> GetRoleInfoEmbedAsync(DiscordGuild guild, DiscordRole role)
+        public async Task<Page[]> GetRoleInfoEmbedAsync(DiscordGuild guild, DiscordRole role)
         {
             var memberTask = guild.GetAllMembersAsync();
             var guildTask = GuildService.GetOrCreateGuildAsync(guild.Id, true);
@@ -176,7 +137,7 @@ namespace MutinyBot.Modules
                 new Page {Embed = embed.WithDescription($"There are no holders of {role.Mention}.")}
             };
         }
-        private DiscordEmbed GetGuildInfoEmbed(DiscordGuild guild)
+        public DiscordEmbed GetGuildInfoEmbed(DiscordGuild guild)
         {
             string dateTimeFormat = "ddd MMM dd, yyyy HH:mm tt";
             string dateTimeCreated = guild.CreationTimestamp.ToUniversalTime().ToString(dateTimeFormat);
@@ -192,6 +153,5 @@ namespace MutinyBot.Modules
                 .WithFooter("Times are in UTC using 24 hour time. The AM/PM modifier is for Americans.")
                 .WithColor(GetBotColor());
         }
-        #endregion
     }
 }

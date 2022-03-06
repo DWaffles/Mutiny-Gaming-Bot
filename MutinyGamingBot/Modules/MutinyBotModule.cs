@@ -1,5 +1,8 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity;
+using Humanizer;
+using Humanizer.Localisation;
 using MutinyBot.Services;
 using System;
 using System.Collections.Generic;
@@ -32,7 +35,9 @@ namespace MutinyBot.Modules
             return members.FirstOrDefault(member => member.Nickname.Equals(memberName, StringComparison.OrdinalIgnoreCase)
             || member.Username.Equals(memberName, StringComparison.OrdinalIgnoreCase));
         }
-        protected static DiscordEmbed GetMemberNotFoundEmbed()
+
+        #region EmbedFunctions
+        public static DiscordEmbed GetMemberNotFoundEmbed()
         {
             return new DiscordEmbedBuilder
             {
@@ -41,5 +46,6 @@ namespace MutinyBot.Modules
                 Color = new DiscordColor(0xFF0000) // red
             };
         }
+        #endregion
     }
 }

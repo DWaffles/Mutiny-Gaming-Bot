@@ -14,7 +14,7 @@ namespace MutinyBot
 {
     public partial class MutinyBot
     {
-        private void RegisterEvents()
+        private void RegisterGatewayEvents()
         {
             Client.Ready += OnReady;
             Client.ClientErrored += OnClientError;
@@ -28,9 +28,6 @@ namespace MutinyBot
             Client.GuildMemberUpdated += OnGuildMemberUpdated;
             Client.GuildMemberAdded += OnGuildMemberAdded;
             Client.GuildMemberRemoved += OnGuildMemberRemoved;
-
-            Commands.CommandExecuted += CommandExecuted;
-            Commands.CommandErrored += CommandErrored;
         }
 
         #region EventHandlers

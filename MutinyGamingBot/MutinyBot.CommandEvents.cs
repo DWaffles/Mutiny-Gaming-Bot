@@ -1,7 +1,10 @@
-﻿using DSharpPlus.CommandsNext;
+﻿using DSharpPlus;
+using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.CommandsNext.Exceptions;
 using DSharpPlus.Entities;
+using DSharpPlus.SlashCommands;
+using DSharpPlus.SlashCommands.EventArgs;
 using Humanizer;
 using MutinyBot.Extensions;
 using MutinyBot.Modules;
@@ -11,12 +14,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using DSharpPlus.SlashCommands.Attributes;
+
 
 namespace MutinyBot
 {
     public partial class MutinyBot
     {
+        private void RegisterCommandEvents()
+        {
+            Commands.CommandExecuted += CommandExecuted;
+            Commands.CommandErrored += CommandErrored;
+
+            SlashCommands.SlashCommandInvoked += SlashCommandInvoked;
+            SlashCommands.SlashCommandExecuted += SlashCommandExecuted;
+            SlashCommands.SlashCommandErrored += SlashCommandErrored;
+        }
+
         #region EventHandlers
+        #region CommandHandlers
         private Task CommandExecuted(CommandsNextExtension _, CommandExecutionEventArgs e)
         {
             Log.Logger.Information($"[COMMAND] {e.Context.User.Username} successfully executed '{e.Command.QualifiedName}'");
@@ -106,6 +122,46 @@ namespace MutinyBot
         }
         #endregion
 
+        #region SlashCommandHandlers
+        private Task SlashCommandInvoked(SlashCommandsExtension _, SlashCommandInvokedEventArgs e)
+        {
+            Log.Logger.Information($"[COMMAND] {e.Context.User.Username} invoked slash command '{e.Context.CommandName}'");
+            return Task.CompletedTask;
+        }
+        private Task SlashCommandExecuted(SlashCommandsExtension _, SlashCommandExecutedEventArgs e)
+        {
+            Log.Logger.Information($"[COMMAND] {e.Context.User.Username} successfully executed slash command '{e.Context.CommandName}'");
+            return Task.CompletedTask;
+        }
+        private async Task SlashCommandErrored(SlashCommandsExtension _, SlashCommandErrorEventArgs e)
+        {
+            //await e.Context.CreateResponseAsync(InteractionResponseType.Pong);
+            switch (e.Exception)
+            {
+                case ArgumentException _:
+                    goto default;
+                case SlashExecutionChecksFailedException checksFailed:
+                    List<string> failedChecks = new();
+                    foreach (var attr in checksFailed.FailedChecks)
+                    {
+                        if (attr is UserNotBannedSlashAttribute)
+                            return;
+                        else
+                            failedChecks.Add(ParseFailedSlashCheck(attr));
+                    }
+                    break;
+                case InvalidOperationException _:
+                    goto default;
+                case NotImplementedException:
+                    goto default;
+                default:
+                    Log.Logger.Error(e.Exception, $"[COMMAND] {e.Context.User.Username} tried executing '{e.Context.CommandName}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}");
+                    break;
+            }
+        }
+        #endregion
+        #endregion
+
         #region OffloadFunctions
         private static string ParseFailedCheck(CheckBaseAttribute attr)
         {
@@ -119,6 +175,14 @@ namespace MutinyBot
                 RequireRolesAttribute _ => "You do not have a required role.",
                 RequireNsfwAttribute _ => "This command can only be used in an NSFW channel.",
                 RequireGuildAttribute _ => "This command can only be used in a guild",
+                _ => $"Unknown required attribute: {attr.GetType()}"
+            };
+        }
+        private static string ParseFailedSlashCheck(SlashCheckBaseAttribute attr)
+        {
+            return attr switch
+            {
+                SlashRequireOwnerAttribute _ => "Only the owner of the bot can use that command.",
                 _ => $"Unknown required attribute: {attr.GetType()}"
             };
         }
