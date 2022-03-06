@@ -17,7 +17,8 @@ MGBot is still under development as core features have not been fully implemente
 ## Built Using
 
 - [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus/)
+- [Humanizer](https://github.com/Humanizr/Humanizer)
+- [Kuylar.DSharpPlus.SlashCommands](https://github.com/kuylar/DSharpPlus.SlashCommands)
 - [Microsoft Entity Framework Core](https://docs.microsoft.com/en-us/ef/)
 - [Newtonsoft.Json](https://www.newtonsoft.com/json)
 - [Serilog](https://serilog.net/)
-- [Humanizer](https://github.com/Humanizr/Humanizer)
