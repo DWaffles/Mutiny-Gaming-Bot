@@ -83,12 +83,11 @@ namespace MutinyBot
                     break;
                 case ChecksFailedException checksFailed:
                     List<string> failedChecks = new();
+                    if (checksFailed.FailedChecks.Any(x => x is UserNotBannedAttribute))
+                        return;
                     foreach (var attr in checksFailed.FailedChecks)
                     {
-                        if (attr is UserNotBannedAttribute)
-                            return;
-                        else
-                            failedChecks.Add(ParseFailedCheck(attr));
+                        failedChecks.Add(ParseFailedCheck(attr));
                     }
                     embed.Title = "Command Prechecks Failed";
                     embed.Description = $"One or more command prechecks have failed:\n • {String.Join("\n • ", failedChecks)}";
@@ -105,17 +104,18 @@ namespace MutinyBot
                 case NotImplementedException:
                     Log.Logger.Error(e.Exception, $"[COMMAND] {e.Context.User.Username} tried executing '{e.Command?.QualifiedName ?? "<unknown command>"}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}");
 
-                    embed.Title = "Not Implemented Error";
+                    embed.Title = "Error: Not Implemented";
                     embed.Description = $"This command is not fully implemented in it's current state and has led to an error.";
                     embed.AddField("Command Name", e.Command?.QualifiedName ?? "<unknown command>");
-
+                    embed.WithFooter(DateTime.Now.ToString("HH:mm:ss"));
                     break;
                 default:
                     Log.Logger.Error(e.Exception, $"[COMMAND] {e.Context.User.Username} tried executing '{e.Command?.QualifiedName ?? "<unknown command>"}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}");
 
-                    embed.Title = "Unknown Error Occured";
-                    embed.Description = $"Unknown error occured, please report this to the developer.";
+                    embed.Title = "Error";
+                    embed.Description = $"Unknown error occured during command execution, please report this to the developer.";
                     embed.AddField("Exception Type", e.Exception.GetType().ToString());
+                    embed.WithFooter(DateTime.Now.ToString("HH:mm:ss"));
                     break;
             }
             await e.Context.RespondAsync(embed: embed);
@@ -135,29 +135,40 @@ namespace MutinyBot
         }
         private async Task SlashCommandErrored(SlashCommandsExtension _, SlashCommandErrorEventArgs e)
         {
-            //await e.Context.CreateResponseAsync(InteractionResponseType.Pong);
+            var embed = new DiscordEmbedBuilder()
+                .WithColor(new DiscordColor(0xFF0000));
             switch (e.Exception)
             {
-                case ArgumentException _:
-                    goto default;
                 case SlashExecutionChecksFailedException checksFailed:
                     List<string> failedChecks = new();
+                    if(checksFailed.FailedChecks.Any(x => x is UserNotBannedSlashAttribute))
+                    {
+                        await e.Context.EditResponseAsync(new DiscordWebhookBuilder().WithContent("You cannot interact with the bot."));
+                        return;
+                    }
                     foreach (var attr in checksFailed.FailedChecks)
                     {
-                        if (attr is UserNotBannedSlashAttribute)
-                            return;
-                        else
-                            failedChecks.Add(ParseFailedSlashCheck(attr));
+                        failedChecks.Add(ParseFailedSlashCheck(attr));
                     }
+                    embed.Title = "Command Prechecks Failed";
+                    embed.Description = $"One or more command prechecks have failed:\n • {String.Join("\n • ", failedChecks)}";
                     break;
-                case InvalidOperationException _:
-                    goto default;
-                case NotImplementedException:
-                    goto default;
+                case DSharpPlus.Exceptions.BadRequestException badrq:
+                    Log.Logger.Error(e.Exception, $"[COMMAND] {e.Context.User.Username} tried executing '{e.Context.CommandName}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}");
+                    embed.WithTitle("Error: Bad Request");
+                    embed.Description = $"Command interaction resulted in a bad request. This is likely an internal error.";
+                    embed.AddField("Exception Type", e.Exception.GetType().ToString());
+                    embed.WithFooter(DateTime.Now.ToString("HH:mm:ss"));
+                    break;
                 default:
                     Log.Logger.Error(e.Exception, $"[COMMAND] {e.Context.User.Username} tried executing '{e.Context.CommandName}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}");
+                    embed.Title = "Error";
+                    embed.Description = $"Error occured during command interaction, please report this to the developer.";
+                    embed.AddField("Exception Type", e.Exception.GetType().ToString());
+                    embed.WithFooter(DateTime.Now.ToString("HH:mm:ss"));
                     break;
             }
+            await e.Context.Channel.SendMessageAsync(embed);
         }
         #endregion
         #endregion

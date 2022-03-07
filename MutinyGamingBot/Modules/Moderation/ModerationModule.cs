@@ -103,51 +103,6 @@ namespace MutinyBot.Modules
                     await interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
             }
         }
-        [Command("muterole"), Aliases("mute", "mr")]
-        [Description("Allows setting and removal of the mute role. Calling this without options when there is a role set will ask for confirmation to remove it, " +
-            "while passing a role to this command will ask to update the join log channel.")]
-        public async Task ChangeMuteRoleCommand(CommandContext ctx, [RemainingText] DiscordRole newRole = null)
-        {
-            await ctx.TriggerTypingAsync();
-
-            var guildEntity = await GuildService.GetOrCreateGuildAsync(ctx.Guild.Id, false);
-            var currentMuteRole = ctx.Guild.GetRole(guildEntity.MuteRoleId);
-
-            if (newRole == null && currentMuteRole != null) //clear mute role
-            {
-                var (userResponse, interaction) = await ctx.WaitForConfirmationInteraction($"Remove set mute role for **{ctx.Guild.Name}**? Current mute role: `@{currentMuteRole.Name}`.");
-
-                if (userResponse is ConfirmationResult.Confirmed)
-                {
-                    guildEntity.MuteRoleId = 0;
-                    await GuildService.UpdateGuildAsync(guildEntity);
-
-                    await interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, $":white_check_mark: Cleared mute role for **{ctx.Guild.Name}**.");
-                }
-                else
-                    await interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
-            }
-            else if(newRole != null) // setting or updating join log
-            {
-                string content = $"Set the mute role for **{ctx.Guild.Name}** to `@{newRole.Name}`?{(currentMuteRole != null ? $" Current mute role is `@{currentMuteRole.Name}`" : null)}";
-                var (userResponse, interaction) = await ctx.WaitForConfirmationInteraction(content);
-
-                if (userResponse is ConfirmationResult.Confirmed)
-                {
-                    guildEntity.MuteRoleId = newRole.Id;
-                    await GuildService.UpdateGuildAsync(guildEntity);
-
-                    content = $":white_check_mark: `@{newRole.Name}` is the new joinlog for **{ctx.Guild.Name}**.";
-                    await interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, content);
-                }
-                else
-                    await interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
-            }
-            else
-            {
-                await ctx.RespondAsync($"There is no mute role set for **{ctx.Guild.Name}**.");
-            }
-        }
         [Command("purge"), Aliases("delete", "p")]
         [Description("Not implemented.")]
         public async Task PurgeCommand(CommandContext ctx, int count, DiscordMember member = null)

@@ -7,6 +7,9 @@ namespace MutinyBot.Common
         [JsonProperty("discord")]
         public MutinyBotDiscordConfig Discord { get; private set; } = new MutinyBotDiscordConfig();
 
+        /// <summary>
+        /// Enables debug/verbose logging and registers test slash commands.
+        /// </summary>
         [JsonProperty("debug")]
         public bool Debug { get; private set; } = false;
 
@@ -27,6 +30,9 @@ namespace MutinyBot.Common
         [JsonProperty("mutiny_guild_id")]
         public ulong MutinyGuildId { get; private set; }
 
+        /// <summary>
+        /// Servers where slash commands will be registered.
+        /// </summary>
         [JsonProperty("authorized_guild_ids")]
         public ulong[] AuthorizedServerIds { get; private set; }
     }

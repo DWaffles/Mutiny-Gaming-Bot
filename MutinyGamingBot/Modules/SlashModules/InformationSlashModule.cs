@@ -17,11 +17,10 @@ namespace MutinyBot.Modules
 {
     public class InformationSlashModule : SlashModule
     {
-        [SlashCommand("user", "test")]
+        [SlashCommand("user", "Gets information on a server member.")]
         public async Task MemberInformationCommand(InteractionContext ctx, [Option("member", "test")] DiscordUser user)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-            user = await ctx.Guild.GetMemberAsync(user.Id);
             await ctx.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(await GetMemberInfoEmbedAsync(ctx.Guild, user as DiscordMember)));
         }
         [SlashCommand("role", "See the list of users with this role.")]
@@ -32,7 +31,7 @@ namespace MutinyBot.Modules
                 await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(result[0].Embed));
             else
             {
-                await ctx.CreateResponseAsync(InteractionResponseType.Pong);
+                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AsEphemeral().WithContent("Calculating roles..."));
                 var interactivity = ctx.Client.GetInteractivity();
                 await interactivity.SendPaginatedMessageAsync(ctx.Channel, ctx.User, result, buttons: null);
             }
