@@ -12,6 +12,7 @@ namespace MutinyBot.Modules
     [Group("moderation"), Aliases("mod")]
     [RequireUserPermissions(Permissions.ManageGuild)]
     [RequireGuild]
+    [CommandCategory(CommandCategories.Moderation)]
     [Description("Commands relating to managing the moderation settings of the guild. Requires ManageGuild permissions.")]
     public class ModerationModule : MutinyBotModule
     {
@@ -27,33 +28,17 @@ namespace MutinyBot.Modules
                 .WithFooter($"Guild ID: {ctx.Guild.Id}")
                 .WithColor(GetBotColor());
 
-            if (guildEntity.TrackMemberRoles)
-                embed.AddField($"Track Member Roles?", guildEntity.TrackMemberRoles.ToString(), true);
-            if (guildEntity.TrackMessageTimestamps)
-                embed.AddField($"Track Member Activity?", guildEntity.TrackMessageTimestamps.ToString(), true);
-            if (guildEntity.MuteRoleId != 0)
-            {
-                if (ctx.Guild.GetRole(guildEntity.MuteRoleId) != null)
-                    embed.AddField($"Mute Role", $"<@&{guildEntity.MuteRoleId}>", true);
-                else
-                    guildEntity.MuteRoleId = 0;
-            }
-            if (guildEntity.ModerationLogChannelId != 0)
-            {
-                if (ctx.Guild.GetChannel(guildEntity.ModerationLogChannelId) != null)
-                    embed.AddField($"Moderation Log Channel", $"<#{guildEntity.ModerationLogChannelId}>", true);
-                else
-                    guildEntity.ModerationLogChannelId = 0;
-            }
-            if (guildEntity.JoinLogChannelId != 0)
-            {
-                if (ctx.Guild.GetChannel(guildEntity.JoinLogChannelId) != null)
-                    embed.AddField($"Join Log Channel", $"<#{guildEntity.JoinLogChannelId}>", true);
-                else
-                    guildEntity.JoinLogChannelId = 0;
-            }
+            embed.AddField("Tracking Settings", String.Join("\n", 
+                $"{(guildEntity.TrackMemberRoles ? ":white_check_mark: T" : ":x: Not t")}racking member roles.",
+                $"{(guildEntity.TrackMessageTimestamps ? ":white_check_mark: T" : ":x: Not t")}racking message timestamps."));
 
-            await GuildService.UpdateGuildAsync(guildEntity);
+            embed.AddField("Channel Settings", String.Join("\n", 
+                guildEntity.JoinLogChannelId != 0? $":white_check_mark: <#{guildEntity.JoinLogChannelId}> set as" : ":x: No" + " joinlog.",
+                guildEntity.ModerationLogChannelId != 0 ? $":white_check_mark: <#{guildEntity.ModerationLogChannelId}> set as" : ":x: No" + " modlog."));
+
+            // Remove channels that have been deleted?
+            // await GuildService.UpdateGuildAsync(guildEntity);
+            
             await ctx.RespondAsync(embed: embed);
         }
         [Command("joinlog"), Aliases("join", "jl")]
@@ -102,13 +87,6 @@ namespace MutinyBot.Modules
                 else
                     await interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
             }
-        }
-        [Command("purge"), Aliases("delete", "p")]
-        [Description("Not implemented.")]
-        public async Task PurgeCommand(CommandContext ctx, int count, DiscordMember member = null)
-        {
-            await ctx.TriggerTypingAsync();
-            throw new NotImplementedException();
         }
         [Group("tracking"), Aliases("track", "t")]
         [Description("Commands relating to managing the tracking settings of the guild.")]

@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 
 namespace MutinyBot.Common
 {
@@ -8,7 +9,7 @@ namespace MutinyBot.Common
         public MutinyBotDiscordConfig Discord { get; private set; } = new MutinyBotDiscordConfig();
 
         /// <summary>
-        /// Enables debug/verbose logging and registers test slash commands.
+        /// Whether to enables debug/verbose logging and registers test slash commands if slash commands are enabled.
         /// </summary>
         [JsonProperty("debug")]
         public bool Debug { get; private set; } = false;
@@ -27,6 +28,12 @@ namespace MutinyBot.Common
         [JsonProperty("status")]
         public string BotStatus { get; private set; }
 
+        /// <summary>
+        /// Whether to enable slash commands in authorized guilds. 
+        /// </summary>
+        [JsonProperty("register_slash_commands")]
+        public bool RegisterSlashCommands { get; private set; } = true;
+
         [JsonProperty("mutiny_guild_id")]
         public ulong MutinyGuildId { get; private set; }
 
@@ -34,7 +41,7 @@ namespace MutinyBot.Common
         /// Servers where slash commands will be registered.
         /// </summary>
         [JsonProperty("authorized_guild_ids")]
-        public ulong[] AuthorizedServerIds { get; private set; }
+        public ulong[] AuthorizedServerIds { get; private set; } = Array.Empty<ulong>();
     }
     public class MutinyBotStartUpConfig
     {

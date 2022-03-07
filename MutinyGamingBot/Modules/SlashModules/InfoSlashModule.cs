@@ -15,13 +15,13 @@ using System.Threading.Tasks;
 
 namespace MutinyBot.Modules
 {
-    public class InformationSlashModule : SlashModule
+    public class InfoSlashModule : SlashModule
     {
         [SlashCommand("user", "Gets information on a server member.")]
-        public async Task MemberInformationCommand(InteractionContext ctx, [Option("member", "test")] DiscordUser user)
+        public async Task MemberInformationCommand(InteractionContext ctx, [Option("member", "test")] DiscordUser user = null)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(await GetMemberInfoEmbedAsync(ctx.Guild, user as DiscordMember)));
+            await ctx.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(await GetMemberInfoEmbedAsync(ctx.Guild, (user ?? ctx.User) as DiscordMember)));
         }
         [SlashCommand("role", "See the list of users with this role.")]
         public async Task RoleInformationCommand(InteractionContext ctx, [Option("role", "Role to search users for.")] DiscordRole role)

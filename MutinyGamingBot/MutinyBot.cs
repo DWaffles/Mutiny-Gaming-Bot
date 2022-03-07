@@ -14,7 +14,6 @@ using MutinyBot.Modules;
 using MutinyBot.Services;
 using Serilog;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -107,30 +106,9 @@ namespace MutinyBot
                 }
             });
 
+            RegisterCommands();
             RegisterGatewayEvents();
             RegisterCommandEvents();
-
-            Commands.SetHelpFormatter<CustomHelpFormatter>(); //Registering custom help formatter
-            Commands.RegisterCommands(Assembly.GetExecutingAssembly()); //Registering commands from all modules
-
-            //SlashCommands.RegisterCommands<SlashModule>(); //Clears slash commands globally
-            //SlashCommands.RegisterCommands(typeof(SlashModule), /* ID */); //Clears slash commands per guild?
-
-            var modules = Assembly.GetExecutingAssembly().GetTypes() // Getting all types in the assembly
-                .Where(myType => myType.IsClass && !myType.IsAbstract && myType.IsSubclassOf(typeof(SlashModule))).ToList(); // Selecting only the types that inherit from the base slash module
-
-            if (!config.Debug) //removing the debug/test slash module if it's not required
-                modules.Remove(typeof(DebugSlashModule));
-
-            var guilds = Config.Discord.AuthorizedServerIds.ToList(); // list of all of the guilds to register slash commands for
-            if (Config.Discord.MutinyGuildId != 0)
-                guilds.Add(Config.Discord.MutinyGuildId);
-
-            Log.Logger.Information($"Registering ({String.Join(", ", modules)} slash modules in following guilds: {String.Join(", ", Config.Discord.AuthorizedServerIds)}");
-            foreach (Type type in modules)
-            {
-                guilds.ForEach(guild => SlashCommands.RegisterCommands(type, guild));
-            }
         }
         public async Task ConnectAsync()
         {
@@ -153,6 +131,33 @@ namespace MutinyBot
 
             /*var mediaService = (ImageService)Services.GetRequiredService(typeof(ImageService));
             mediaService.ConfigureMediaService(Path.Combine("data"));*/
+        }
+        private void RegisterCommands()
+        {
+            Commands.SetHelpFormatter<CustomHelpFormatter>(); //Registering custom help formatter
+            Commands.RegisterCommands(Assembly.GetExecutingAssembly()); //Registering commands from all modules
+
+            //SlashCommands.RegisterCommands<SlashModule>(); //Clears slash commands globally
+            //SlashCommands.RegisterCommands(typeof(SlashModule), /* ID */); //Clears slash commands per guild?
+
+            if(Config.Discord.RegisterSlashCommands)
+            {
+                var modules = Assembly.GetExecutingAssembly().GetTypes() // Getting all types in the assembly
+                .Where(myType => myType.IsClass && !myType.IsAbstract && myType.IsSubclassOf(typeof(SlashModule))).ToList(); // Selecting only the types that inherit from the base slash module
+
+                if (!Config.Debug) //removing the debug/test slash module if it's not required
+                    modules.Remove(typeof(DebugSlashModule));
+
+                var guilds = Config.Discord.AuthorizedServerIds.ToList(); // list of all of the guilds to register slash commands for
+                if (Config.Discord.MutinyGuildId != 0)
+                    guilds.Add(Config.Discord.MutinyGuildId);
+
+                Log.Logger.Information($"Registering ({String.Join(", ", modules.Select(type => type.Name))}) slash modules in following guilds: {String.Join(", ", Config.Discord.AuthorizedServerIds)}");
+                foreach (Type type in modules)
+                {
+                    guilds.ForEach(guild => SlashCommands.RegisterCommands(type, guild));
+                }
+            }
         }
         private Task RunTaskAsync(Task task, [CallerMemberName] string parentCall = "")
         {
