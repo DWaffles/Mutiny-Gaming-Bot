@@ -13,7 +13,7 @@ namespace MutinyBot.Database
 {
     public class MutinyBotDbContext : DbContext
     {
-        public DbSet<PetModel> Pets { get; set; }
+        public DbSet<PetImageModel> Pets { get; set; }
         public DbSet<UserModel> Users { get; set; }
         public DbSet<GuildModel> Guilds { get; set; }
         public DbSet<MemberModel> Members { get; set; }
@@ -45,7 +45,7 @@ namespace MutinyBot.Database
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            var iCollectionStringValueComparer = new ValueComparer<ICollection<string>>(
+            var listStringValueComparer = new ValueComparer<IEnumerable<string>>(
                         (c1, c2) => c1.SequenceEqual(c2),
                         c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                         c => c);
@@ -55,9 +55,9 @@ namespace MutinyBot.Database
                         c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                         c => c.ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
 
-            modelBuilder.Entity<PetModel>(entity =>
+            modelBuilder.Entity<PetImageModel>(entity =>
             {
-                entity.HasKey(m => m.PetId);
+                entity.HasKey(m => m.ImageId);
             });
             modelBuilder.Entity<UserModel>(entity =>
             {

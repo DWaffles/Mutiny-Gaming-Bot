@@ -137,13 +137,14 @@ namespace MutinyBot
         {
             var embed = new DiscordEmbedBuilder()
                 .WithColor(new DiscordColor(0xFF0000));
+
             switch (e.Exception)
             {
                 case SlashExecutionChecksFailedException checksFailed:
                     List<string> failedChecks = new();
                     if(checksFailed.FailedChecks.Any(x => x is UserNotBannedSlashAttribute))
                     {
-                        await e.Context.EditResponseAsync(new DiscordWebhookBuilder().WithContent("You cannot interact with the bot."));
+                        await e.Context.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("You cannot interact with the bot.").AsEphemeral());
                         return;
                     }
                     foreach (var attr in checksFailed.FailedChecks)
@@ -168,7 +169,14 @@ namespace MutinyBot
                     embed.WithFooter(DateTime.Now.ToString("HH:mm:ss"));
                     break;
             }
-            await e.Context.Channel.SendMessageAsync(embed);
+            try
+            {
+                await e.Context.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().AddEmbed(embed).AsEphemeral());
+            }
+            catch
+            {
+                await e.Context.Channel.SendMessageAsync(embed);
+            }
         }
         #endregion
         #endregion
@@ -193,7 +201,7 @@ namespace MutinyBot
         {
             return attr switch
             {
-                SlashRequireOwnerAttribute _ => "Only the owner of the bot can use that command.",
+                IsPetOwnerSlashAttribute _ => "You are not authorized to add pets to the bot.",
                 _ => $"Unknown required attribute: {attr.GetType()}"
             };
         }

@@ -37,16 +37,15 @@ namespace MutinyBot.Modules
         {
             var modal = new DiscordInteractionResponseBuilder()
                 .WithTitle("TEST")
-                .WithCustomId("id-modal")
+                .WithCustomId($"id-modal-{ctx.User.Id}")
                 .AddComponents(new TextInputComponent(label: "Title of Tag", customId: "id-title", placeholder: "Enter title...", max_length: 32))
                 .AddComponents(new TextInputComponent("Tags", "id-tags", null, required: true, style: TextInputStyle.Short))
                 .AddComponents(new TextInputComponent("Description?", "id-description", "Enter description...", required: false, style: TextInputStyle.Paragraph));
             await ctx.CreateResponseAsync(InteractionResponseType.Modal, modal);
 
-            /*var interactivity = ctx.Client.GetInteractivity();
-            var response = await interactivity.WaitForModalAsync("id-modal"); //Results in D#+ internal NRE
-            await ctx.Channel.SendMessageAsync(String.Join("\n", response.Result.Values));
-            await ctx.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Response")); //Errors?*/
+            var response = await ctx.Client.GetInteractivity().WaitForModalAsync($"id-modal-{ctx.User.Id}", user: ctx.User);
+            await response.Result.Interaction.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
+            await response.Result.Interaction.EditOriginalResponseAsync(new DiscordWebhookBuilder().WithContent($"{String.Join("\n", response.Result.Values.Values)}"));
         }
     }
 }

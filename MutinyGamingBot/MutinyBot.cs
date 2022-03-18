@@ -112,7 +112,7 @@ namespace MutinyBot
         }
         public async Task ConnectAsync()
         {
-            var activity = new DiscordActivity($"[{string.Join(", ", Config.Discord.CommandPrefixes)}]{(Config.Discord.BotStatus ?? "help")}", ActivityType.Playing);
+            var activity = new DiscordActivity(Config.Discord.BotStatus ?? $"[{string.Join(", ", Config.Discord.CommandPrefixes)}]help", ActivityType.Playing);
             await Client.ConnectAsync(activity);
             await Task.Delay(-1);
         }
@@ -159,7 +159,7 @@ namespace MutinyBot
                 }
             }
         }
-        private Task RunTaskAsync(Task task, [CallerMemberName] string parentCall = "")
+        private static Task RunTaskAsync(Task task, [CallerMemberName] string parentCall = "unknown")
         {
             Task.Run(async () =>
             {

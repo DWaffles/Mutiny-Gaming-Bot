@@ -33,24 +33,10 @@ namespace MutinyBot
         }
 
         #region EventHandlers
-        private async Task OnModalSubmitted(DiscordClient client, ModalSubmitEventArgs e)
+        private Task OnModalSubmitted(DiscordClient client, ModalSubmitEventArgs e)
         {
             Log.Logger.Information("[INTERACTION] Modal Submitted.");
-            //if(e.Interaction.)
-            //await e.Interaction.CreateResponseAsync(InteractionResponseType.UpdateMessage, new DiscordInteractionResponseBuilder().WithContent("Thank you!")); // ERROR 404
-            //await e.Interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate); // bad request
-
-            await e.Interaction.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource, new DiscordInteractionResponseBuilder().WithContent("Processing information...")); // This is now the original response.
-
-            switch (e.Interaction.Data.CustomId)
-            {
-                case "id-modal":
-                    await e.Interaction.EditOriginalResponseAsync(new DiscordWebhookBuilder().WithContent("ID Modal recieved."));
-                    break;
-                default:
-                    await e.Interaction.EditOriginalResponseAsync(new DiscordWebhookBuilder().WithContent("Unknown modal."));
-                    break;
-            }
+            return Task.CompletedTask;
         }
         private Task OnReady(DiscordClient client, ReadyEventArgs e)
         {

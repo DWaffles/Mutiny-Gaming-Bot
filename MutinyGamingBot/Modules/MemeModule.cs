@@ -19,8 +19,7 @@ namespace MutinyBot.Modules
         public async Task BowlingBallCommand(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
-            var rand = Rand.Next(0, 7);
-            switch (rand)
+            switch (Rand.Next(0, 7))
             {
                 case 0:
                     await ctx.RespondAsync("*ahem* Gentlemen.\n> To be fair, you have to have a very high IQ to understand being bowling balled. The humour is extremely subtle, and without a solid grasp of theoretical physics most of the jokes will go over a typical Mutineer's head. There's also Gooby's superior humour, which is deftly woven into his characterisation- his personal philosophy draws heavily from constant baiting, for instance. The fans understand this stuff; they have the intellectual capacity to truly appreciate the depths of these jokes, to realise that they're not just funny- they say something deep about LIFE. As a consequence people who dislike being bowling balled truly ARE idiots- of course they wouldn't appreciate, for instance, the humour in Gooby's existential catchphrase \"you just got bowling balled,\" which itself is a cryptic reference to haha get bowling balled. I'm smirking right now just imagining one of those addlepated simpletons scratching their heads in confusion as Gooby's genius wit unfolds itself on their television screens. What fools.. how I pity them.");
@@ -48,13 +47,12 @@ namespace MutinyBot.Modules
                     break;
             }
         }
-        [Command("asshole"), Aliases("veterans", "ball")]
+        [Command("asshole"), Aliases("veterans")]
         [Description("\"The official chart of assholeness of all the active veterans\" - @Luke")]
         public async Task VeteranChartCommand(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
-            var rand = Rand.Next(0, 2);
-            switch (rand)
+            switch (Rand.Next(0, 2))
             {
                 case 0:
                     await ctx.RespondAsync("https://i.imgur.com/iJUiOHK.png");
@@ -64,6 +62,12 @@ namespace MutinyBot.Modules
                     break;
             }
         }
-        // Its been 0 days since command channel
+        [Command("opschannel"), Aliases("opsec")]
+        [Description("Ops channel for ops.")]
+        public async Task OpsChannelCommand(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+            await ctx.RespondAsync("https://i.imgur.com/EYwUrCW.gif");
+        }
     }
 }

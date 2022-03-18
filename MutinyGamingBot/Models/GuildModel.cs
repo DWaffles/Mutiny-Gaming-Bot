@@ -6,7 +6,7 @@ using System.Linq;
 namespace MutinyBot.Models
 {
     /// <summary>
-    /// Represents a Discord guild's within the database.
+    /// Represents a Discord guild within the database.
     /// </summary>
     public class GuildModel
     {

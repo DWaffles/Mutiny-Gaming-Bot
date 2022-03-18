@@ -1,8 +1,6 @@
 ﻿using DSharpPlus;
-using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity;
-using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.SlashCommands;
 using Humanizer;
 using Humanizer.Localisation;
@@ -10,7 +8,6 @@ using MutinyBot.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace MutinyBot.Modules
@@ -18,6 +15,7 @@ namespace MutinyBot.Modules
     [UserNotBannedSlash]
     public class SlashModule : ApplicationCommandModule
     {
+        public PetService PetService { get; set; }
         public GuildService GuildService { protected get; set; }
         public MemberService MemberService { protected get; set; }
         public MutinyBot MutinyBot { protected get; set; }

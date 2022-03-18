@@ -13,6 +13,7 @@ namespace MutinyBot.Services
     public class GuildService
     {
         public GuildService() { }
+
         /// <summary>
         /// Gets a guilds' representation within the database. Creates and returns a filled <see cref="GuildModel"/> if nothing is found.
         /// </summary>

@@ -10,33 +10,12 @@ using System.Threading.Tasks;
 
 namespace MutinyBot.Modules
 {
-    [RequireOwner, Hidden]
-    public class CreatorModule : MutinyBotModule
+    public class CreatorBotBanModule : CreatorModule
     {
-        [Command("quit"), Aliases("shutdown", "q")]
-        [Description("Command will shut down the bot.")]
-        public async Task QuitCommand(CommandContext ctx)
+        [Command("botban")]
+        public async Task BotBanHandlerCommand(CommandContext ctx, DiscordMember member)
         {
-            await ctx.TriggerTypingAsync();
-            await ctx.RespondAsync("Quitting application.");
-            await ctx.Client.DisconnectAsync();
-            Log.CloseAndFlush();
-            Environment.Exit(0);
-        }
-        [Command("echo"), Aliases("repeat", "e")]
-        [Description("Makes the bot echo a message. Deletes command message.")]
-        public async Task EchoCommand(CommandContext ctx, [RemainingText, Description("Message to echo.")] string message)
-        {
-            if (message.Length == 0)
-                return;
-
-            await ctx.TriggerTypingAsync();
-            if (!ctx.Channel.IsPrivate)
-            {
-                if (ctx.Channel.PermissionsFor(ctx.Guild.CurrentMember).HasFlag(Permissions.ManageMessages))
-                    await ctx.Message.DeleteAsync();
-            }
-            await ctx.RespondAsync(message);
+            await BotBanHandlerCommand(ctx, member as DiscordUser);
         }
         [Command("botban")]
         public async Task BotBanHandlerCommand(CommandContext ctx, [RemainingText] DiscordUser user)
@@ -64,14 +43,7 @@ namespace MutinyBot.Modules
             else
                 await interaction.CreateResponseAsync(InteractionResponseType.DeferredMessageUpdate);
         }
-        [Command("botban")]
-        public async Task BotBanHandlerCommand(CommandContext ctx, DiscordMember memeber)
-        {
-            await BotBanHandlerCommand(ctx, memeber as DiscordUser);
-        }
-        //EXPORT
-        //PETOWNERS
-
+        
         #region EmbedFunctions
         private async Task<DiscordEmbed> GetBanConfirmEmbed(CommandContext ctx, DiscordUser user)
         {
@@ -94,7 +66,6 @@ namespace MutinyBot.Modules
                 {
                     embed.AddField($"Member of {ctx.Guild.Name}?", "False", true);
                 }
-
             }
 
             return embed;
@@ -118,30 +89,5 @@ namespace MutinyBot.Modules
             return embed;
         }
         #endregion
-    }
-    [Group("debug"), Aliases("d")]
-    [Description("Debug commands."), Hidden, RequireOwner]
-    public class DebugModule : MutinyBotModule
-    {
-        [Command("embed")]
-        public async Task EmbedDebugCommand(CommandContext ctx)
-        {
-            await ctx.TriggerTypingAsync();
-
-            var embed = new DiscordEmbedBuilder()
-                .WithAuthor(name: "Author Field *[Can Be Linked]*", iconUrl: ctx.Member.AvatarUrl, url: ctx.Member.AvatarUrl)
-                .WithTitle("Title Field *[No Markdown]*")
-                .WithDescription("Description")
-                .WithColor(GetBotColor());
-
-            await ctx.RespondAsync(embed: embed);
-        }
-        [Command("timestamp")]
-        public async Task TestTimestampCommand(CommandContext ctx)
-        {
-            await ctx.TriggerTypingAsync();
-            var entity = await MemberService.GetOrCreateMemberAsync(ctx.Guild.Id, ctx.Member.Id);
-            await ctx.RespondAsync($"<t:{entity.LastMessageTimestampRaw}:R>");
-        }
     }
 }
