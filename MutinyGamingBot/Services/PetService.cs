@@ -22,7 +22,7 @@ namespace MutinyBot.Services
         /// </summary>
         /// <param name="guildId">The id of the guild to get the pet image from.</param>
         /// <returns>A random <see cref="PetImageModel"/> from the guild with the given id.</returns>
-        public PetImageModel GetPet(ulong guildId)
+        public PetImageModel GetPetFromGuild(ulong guildId)
         {
             using var context = new MutinyBotDbContext();
             if (context.Pets.Any(x => x.GuildId == guildId))
@@ -42,7 +42,7 @@ namespace MutinyBot.Services
         /// <param name="guild">The guild object the pet image should belong to.</param>
         /// <param name="owner">The user object the pet image should belong to.</param>
         /// <returns>A random <see cref="PetImageModel"/> from the given guild with the given owner.</returns>
-        public PetImageModel GetPet(DiscordGuild guild, DiscordUser owner)
+        public PetImageModel GetPetByMember(DiscordGuild guild, DiscordUser owner)
         {
             using var context = new MutinyBotDbContext();
             if (context.Pets.Any(x => x.GuildId == guild.Id && x.OwnerId == owner.Id))
@@ -61,7 +61,7 @@ namespace MutinyBot.Services
         /// </summary>
         /// <param name="petId">The unique pet image id to look for.</param>
         /// <returns>The <see cref="PetImageModel"/> with the given model, or null if it was not found.</returns>
-        public PetImageModel GetPet(int petId)
+        public PetImageModel GetPetById(int petId)
         {
             using var context = new MutinyBotDbContext();
             return context.Pets.SingleOrDefault(x => x.ImageId == petId);

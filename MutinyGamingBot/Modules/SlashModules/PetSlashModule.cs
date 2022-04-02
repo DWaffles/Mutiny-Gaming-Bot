@@ -18,10 +18,10 @@ namespace MutinyBot.Modules.SlashModules
         // Not allowed: .mp4 .webm
         private Regex FileTypePattern { get; } = new(".(png|jp(e)?g|gif|webp)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-        [SlashCommand("random", "Gets a random pet.")]
+        [SlashCommand("random", "Gets a random pet from this guild.")]
         public async Task GetPetCommand(InteractionContext ctx)
         {
-            PetImageModel pet = PetService.GetPet(ctx.Guild.Id);
+            PetImageModel pet = PetService.GetPetFromGuild(ctx.Guild.Id);
             if (pet is null)
                 await ctx.CreateResponseAsync($"There are no pets for this server.");
             else
@@ -30,14 +30,26 @@ namespace MutinyBot.Modules.SlashModules
                 await ctx.CreateResponseAsync(embed: GetPetEmbed(pet, ctx.User as DiscordMember, owner));
             }
         }
-        [SlashCommand("from", "Gets information on a server member.")]
+        [SlashCommand("from", "Gets a pet from this guild by the pet id.")]
         public async Task GetPetFromCommand(InteractionContext ctx, [Option("member", "member to get a pet from")] DiscordUser owner)
         {
-            PetImageModel pet = PetService.GetPet(ctx.Guild, owner);
+            PetImageModel pet = PetService.GetPetByMember(ctx.Guild, owner);
             if (pet is null)
                 await ctx.CreateResponseAsync($"There are no pets from this member.");
             else
             {
+                await ctx.CreateResponseAsync(embed: GetPetEmbed(pet, ctx.User as DiscordMember, owner));
+            }
+        }
+        [SlashCommand("id", "Gets a pet from this guild by the pet id.")]
+        public async Task GetPetFromCommand(InteractionContext ctx, [Option("id", "pet id to search for")] long id)
+        {
+            PetImageModel pet = PetService.GetPetById(Convert.ToInt32(id));
+            if (pet is null)
+                await ctx.CreateResponseAsync($"There are no pets of this id in this guild.");
+            else
+            {
+                var owner = await ctx.Client.GetUserAsync(pet.OwnerId);
                 await ctx.CreateResponseAsync(embed: GetPetEmbed(pet, ctx.User as DiscordMember, owner));
             }
         }
@@ -87,7 +99,7 @@ namespace MutinyBot.Modules.SlashModules
         {
             return new DiscordEmbedBuilder()
                 .WithAuthor($"{owner.DisplayName} added pets to {owner.Guild.Name}", iconUrl: owner.AvatarUrl)
-                .WithDescription($"{Formatter.Bold(pet.PetNames)}.")
+                .WithDescription($"{owner.Mention} added {Formatter.Bold(pet.PetNames)}.")
                 .WithImageUrl(pet.MediaUrl)
                 .WithFooter($"1 out of {PetService.CountPets(owner.Guild.Id, owner.Id)} pets from {owner.Username} • Unique ID: {pet.ImageId}")
                 .WithTimestamp(DateTime.Now)
