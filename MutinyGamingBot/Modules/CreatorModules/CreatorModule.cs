@@ -6,6 +6,9 @@ using MutinyBot.Enums;
 using MutinyBot.Extensions;
 using Serilog;
 using System;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace MutinyBot.Modules
@@ -63,6 +66,18 @@ namespace MutinyBot.Modules
             await ctx.TriggerTypingAsync();
             var entity = await MemberService.GetOrCreateMemberAsync(ctx.Guild.Id, ctx.Member.Id);
             await ctx.RespondAsync($"<t:{entity.LastMessageTimestampRaw}:R>");
+        }
+        [Command("exportrole"), Aliases("export", "e")]
+        public async Task ExportCommand(CommandContext ctx, [RemainingText] DiscordRole role)
+        {
+            var members = (await ctx.Guild.GetAllMembersAsync()).Where(x => x.Roles.Contains(role)).OrderBy(m => m.DisplayName);
+
+            StringBuilder stringBuilder = new();
+            foreach (var member in members)
+            {
+                    stringBuilder.AppendLine($"{member.DisplayName}");
+            }
+            File.WriteAllText($"data{Path.DirectorySeparatorChar}output-{role.Name}.txt", stringBuilder.ToString());
         }
     }
 }
