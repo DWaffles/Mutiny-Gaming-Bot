@@ -18,7 +18,7 @@ namespace MutinyBot.Modules
     public class InfoSlashModule : SlashModule
     {
         [SlashCommand("user", "Gets information on a server member.")]
-        public async Task MemberInformationCommand(InteractionContext ctx, [Option("member", "test")] DiscordUser user = null)
+        public async Task MemberInformationCommand(InteractionContext ctx, [Option("member", "Member to get info on.")] DiscordUser user = null)
         {
             await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
             await ctx.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(await GetMemberInfoEmbedAsync(ctx.Guild, (user ?? ctx.User) as DiscordMember)));

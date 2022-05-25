@@ -28,16 +28,9 @@ namespace MutinyBot
             Client.GuildMemberUpdated += OnGuildMemberUpdated;
             Client.GuildMemberAdded += OnGuildMemberAdded;
             Client.GuildMemberRemoved += OnGuildMemberRemoved;
-
-            Client.ModalSubmitted += OnModalSubmitted;
         }
 
         #region EventHandlers
-        private Task OnModalSubmitted(DiscordClient client, ModalSubmitEventArgs e)
-        {
-            Log.Logger.Information("[INTERACTION] Modal Submitted.");
-            return Task.CompletedTask;
-        }
         private Task OnReady(DiscordClient client, ReadyEventArgs e)
         {
             Log.Logger.Information("[CLIENT] Client is ready to process events.");
@@ -75,14 +68,12 @@ namespace MutinyBot
         {
             Log.Logger.Information($"[MEMBER] Member updated in: {e.Guild.Name}. ID: {e.Guild.Id}");
             RunTaskAsync(MemberUpdatedAsync(e.Member));
-            //check if member has had mute role removed
             return Task.CompletedTask;
         }
         private Task OnGuildMemberAdded(DiscordClient client, GuildMemberAddEventArgs e)
         {
             Log.Logger.Information($"[MEMBER] Member joined in: {e.Guild.Name}. ID: {e.Guild.Id}");
             RunTaskAsync(MemberJoinedAsync(e.Guild, e.Member));
-
             return Task.CompletedTask;
         }
         private Task OnGuildMemberRemoved(DiscordClient client, GuildMemberRemoveEventArgs e)

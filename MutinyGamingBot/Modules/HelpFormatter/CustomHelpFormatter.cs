@@ -97,7 +97,7 @@ namespace MutinyBot.Modules
             }
             else
             {
-                this.EmbedBuilder.WithDescription("Listing all top-level commands and groups. Specify a command to see more information. Test");
+                this.EmbedBuilder.WithDescription("Listing all top-level commands and groups. Specify a command to see more information.");
 
                 var categories = subcommands
                     .Where(x =>
