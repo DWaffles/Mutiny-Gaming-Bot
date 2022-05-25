@@ -36,12 +36,12 @@ namespace MutinyBot
             if (!FileHandler.VerifyConfig(Config))
                 throw new ArgumentException("Config does not contain a valid token and/or prefix.");
 
-            var logger = (Config.Debug ? new LoggerConfiguration().MinimumLevel.Debug() : new LoggerConfiguration().MinimumLevel.Information())
+            Log.Logger = (Config.Debug ? new LoggerConfiguration().MinimumLevel.Debug() : new LoggerConfiguration().MinimumLevel.Information())
                 .WriteTo.Console()
-                .WriteTo.File($"data{Path.DirectorySeparatorChar}logs{Path.DirectorySeparatorChar}log-.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning)
+                .WriteTo.File($"data{Path.DirectorySeparatorChar}logs{Path.DirectorySeparatorChar}warning-.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning)
+                .WriteTo.File($"data{Path.DirectorySeparatorChar}logs{Path.DirectorySeparatorChar}info-.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information)
                 .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Serilog.Events.LogEventLevel.Warning)
                 .CreateLogger();
-            Log.Logger = logger;
 
             Services = new ServiceCollection()
                 .AddSingleton(this)
@@ -113,7 +113,14 @@ namespace MutinyBot
         public async Task ConnectAsync()
         {
             var activity = new DiscordActivity(Config.Discord.BotStatus ?? $"[{string.Join(", ", Config.Discord.CommandPrefixes)}]help", ActivityType.Playing);
-            await Client.ConnectAsync(activity);
+            try
+            {
+                await Client.ConnectAsync(activity);
+            }
+            catch (Exception ex) // SystemException
+            {
+                Log.Error(ex, "Exception occured while connecting to Discord.");
+            }
             await Task.Delay(-1);
         }
         public DiscordColor GetBotColor()
