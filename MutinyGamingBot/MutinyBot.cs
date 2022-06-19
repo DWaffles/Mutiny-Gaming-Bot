@@ -45,11 +45,13 @@ namespace MutinyBot
 
             Services = new ServiceCollection()
                 .AddSingleton(this)
+                .AddSingleton(Config)
                 .AddSingleton<Random>()
                 .AddSingleton<PetService>()
                 .AddSingleton<UserService>()
                 .AddSingleton<GuildService>()
                 .AddSingleton<MemberService>()
+                .AddSingleton<ImgurService>()
                 .AddDbContext<MutinyBotDbContext>()
                 .BuildServiceProvider();
 
@@ -154,6 +156,9 @@ namespace MutinyBot
 
                 if (!Config.Debug) //removing the debug/test slash module if it's not required
                     modules.Remove(typeof(DebugSlashModule));
+
+                //if(String.IsNullOrEmpty(Config.Imgur.ClientId))
+                    //modules.Remove(typeof());
 
                 var guilds = Config.Discord.AuthorizedServerIds.ToList(); // list of all of the guilds to register slash commands for
                 if (Config.Discord.MutinyGuildId != 0)

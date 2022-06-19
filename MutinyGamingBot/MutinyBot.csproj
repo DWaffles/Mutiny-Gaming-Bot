@@ -8,11 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DSharpPlus" Version="4.2.0-nightly-01105" />
-    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.2.0-nightly-01105" />
-    <PackageReference Include="DSharpPlus.Interactivity" Version="4.2.0-nightly-01105" />
+    <PackageReference Include="DSharpPlus" Version="4.3.0-nightly-01135" />
+    <PackageReference Include="DSharpPlus.CommandsNext" Version="4.3.0-nightly-01135" />
+    <PackageReference Include="DSharpPlus.Interactivity" Version="4.3.0-nightly-01135" />
     <PackageReference Include="Humanizer.Core" Version="2.14.1" />
-    <PackageReference Include="Kuylar.DSharpPlus.SlashCommands" Version="1.0.10" />
+    <PackageReference Include="Kuylar.DSharpPlus.SlashCommands" Version="1.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.5">

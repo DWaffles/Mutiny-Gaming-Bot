@@ -34,6 +34,11 @@ namespace MutinyBot.Models
         public string MediaUrl { get; set; }
 
         /// <summary>
+        /// Gets the delete hash to delete this pet image off Imgur's servers.
+        /// </summary>
+        public string ImgurDeleteHash { get; set; }
+
+        /// <summary>
         /// Constructs a new instance of this model.
         /// </summary>
         public PetImageModel() { }

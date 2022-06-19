@@ -4,6 +4,7 @@ using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using MutinyBot.Models;
 using MutinyBot.Services;
+using Serilog;
 using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -14,9 +15,11 @@ namespace MutinyBot.Modules.SlashModules
     [SlashRequireGuild]
     public class PetSlashModule : SlashModule
     {
-        // Allowed file types within embeds: JPG PNG GIF WEBP
-        // Not allowed: .mp4 .webm
-        private Regex FileTypePattern { get; } = new(".(png|jp(e)?g|gif|webp)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        // Embed, allowed file types: JPG PNG GIF WEBP
+        // Embed, not allowed types: .mp4 .webm
+        // Imgur, allowed types: JPEG PNG GIF APNG
+        // Imgur, not allowed types: .webp GIFV
+        private Regex FileTypePattern { get; } = new(".(png|jp(e)?g|gif)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         [SlashCommand("random", "Gets a random pet from this guild.")]
         public async Task GetPetCommand(InteractionContext ctx)
@@ -56,7 +59,7 @@ namespace MutinyBot.Modules.SlashModules
         [SlashCommand("add", "Adds a pet.")]
         [IsPetOwnerSlash]
         public async Task AddPetCommand(InteractionContext ctx,
-            [Option("image", "Image of the pet. Accepted file types: PNG, JPEG, WebP, GIF")] DiscordAttachment image,
+            [Option("image", "Image of the pet. Accepted file types: PNG, JPEG, GIF. Max size 20MB.")] DiscordAttachment image,
             [Option("names", "The names of the pets in the image.")] string names)
         {
             if (!FileTypePattern.IsMatch(image.FileName))
@@ -66,16 +69,61 @@ namespace MutinyBot.Modules.SlashModules
             }
             await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
 
-            PetImageModel pet = new()
-            {
-                OwnerId = ctx.User.Id,
-                GuildId = ctx.Guild.Id,
-                PetNames = names,
-                MediaUrl = image.Url,
-            };
+            var (response, imgurUrl, deleteHash) = await ImgurService.UploadImage(image.Url); //TEST WEBP
 
-            await PetService.AddPetAsync(pet);
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(AddPetEmbed(pet, ctx.User as DiscordMember)));
+            if(response.IsSuccessful)
+            {
+                PetImageModel pet = new()
+                {
+                    OwnerId = ctx.User.Id,
+                    GuildId = ctx.Guild.Id,
+                    PetNames = names,
+                    MediaUrl = imgurUrl,
+                    ImgurDeleteHash = deleteHash,
+                };
+
+                await PetService.AddPetAsync(pet);
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().AddEmbed(AddPetEmbed(pet, ctx.User as DiscordMember)));
+            }
+            else
+            {
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("Uploading the given pet image to Imgur failed."));
+                Log.Logger.Error($"Error occured while attempting to upload an image to Imgur. Message: {response.ErrorMessage}");
+            }
+        }
+
+        [SlashCommand("remove", "Adds a pet.")]
+        public async Task DeletePetCommand(InteractionContext ctx, [Option("id", "Unique pet id of the image to delete")] long petId)
+        {
+            await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
+
+            PetImageModel pet = PetService.GetPetById(Convert.ToInt32(petId));
+            if (pet == null)
+            {
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("There is no pet with this id."));
+            }
+            else if (pet.OwnerId == ctx.User.Id)
+            {
+                bool? imgurDelete = null;
+
+                if (!String.IsNullOrEmpty(pet.ImgurDeleteHash))
+                {
+                    (_, imgurDelete) = await ImgurService.DeleteImage(pet.ImgurDeleteHash);
+                }
+                await PetService.RemovePetAsync(pet);
+                if (imgurDelete != null)
+                {
+                    await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(""));
+                }
+                else
+                {
+                    await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(""));
+                }
+            }
+            else
+            {
+
+            }
         }
 
         /*[SlashCommand("edit", "Edits a pet.")]
