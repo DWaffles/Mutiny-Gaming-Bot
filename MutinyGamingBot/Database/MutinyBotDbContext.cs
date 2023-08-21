@@ -13,7 +13,6 @@ namespace MutinyBot.Database
 {
     public class MutinyBotDbContext : DbContext
     {
-        public DbSet<PetImageModel> Pets { get; set; }
         public DbSet<UserModel> Users { get; set; }
         public DbSet<GuildModel> Guilds { get; set; }
         public DbSet<MemberModel> Members { get; set; }
@@ -55,10 +54,6 @@ namespace MutinyBot.Database
                         c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                         c => c.ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
 
-            modelBuilder.Entity<PetImageModel>(entity =>
-            {
-                entity.HasKey(m => m.ImageId);
-            });
             modelBuilder.Entity<UserModel>(entity =>
             {
                 entity.HasKey(m => m.UserId);

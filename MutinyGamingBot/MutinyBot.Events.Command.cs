@@ -201,7 +201,6 @@ namespace MutinyBot
         {
             return attr switch
             {
-                IsPetOwnerSlashAttribute _ => "You are not authorized to add pets to the bot.",
                 _ => $"Unknown required attribute: {attr.GetType()}"
             };
         }

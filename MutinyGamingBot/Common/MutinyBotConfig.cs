@@ -8,9 +8,6 @@ namespace MutinyBot.Common
         [JsonProperty("discord")]
         public MutinyBotDiscordConfig Discord { get; private set; } = new MutinyBotDiscordConfig();
 
-        [JsonProperty("imgur")]
-        public MutinyBotImgurConfig Imgur { get; private set; } = new MutinyBotImgurConfig();
-
         /// <summary>
         /// Whether to enables debug/verbose logging and registers test slash commands if slash commands are enabled.
         /// </summary>
@@ -45,10 +42,5 @@ namespace MutinyBot.Common
         /// </summary>
         [JsonProperty("authorized_guild_ids")]
         public ulong[] AuthorizedServerIds { get; private set; } = Array.Empty<ulong>();
-    }
-    public class MutinyBotImgurConfig
-    {
-        [JsonProperty("client_id")]
-        public string ClientId { get; private set; }
     }
 }

@@ -18,7 +18,6 @@ namespace MutinyBot.Modules
         public UserService UserService { protected get; set; }
         public GuildService GuildService { protected get; set; }
         public MemberService MemberService { protected get; set; }
-        public PetService PetService { protected get; set; }
         public MutinyBot MutinyBot { protected get; set; }
         protected DiscordColor GetBotColor()
         {

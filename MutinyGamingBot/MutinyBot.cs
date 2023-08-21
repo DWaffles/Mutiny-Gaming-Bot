@@ -38,8 +38,8 @@ namespace MutinyBot
 
             Log.Logger = (Config.Debug ? new LoggerConfiguration().MinimumLevel.Debug() : new LoggerConfiguration().MinimumLevel.Information())
                 .WriteTo.Console()
-                .WriteTo.File($"data{Path.DirectorySeparatorChar}logs{Path.DirectorySeparatorChar}warning-.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning)
-                .WriteTo.File($"data{Path.DirectorySeparatorChar}logs{Path.DirectorySeparatorChar}info-.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information)
+                .WriteTo.File($"data{Path.DirectorySeparatorChar}logs{Path.DirectorySeparatorChar}info-.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Information, shared: true)
+                .WriteTo.File($"data{Path.DirectorySeparatorChar}logs{Path.DirectorySeparatorChar}warning-.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7, restrictedToMinimumLevel: Serilog.Events.LogEventLevel.Warning, shared: true)
                 .MinimumLevel.Override("Microsoft.EntityFrameworkCore", Serilog.Events.LogEventLevel.Warning)
                 .CreateLogger();
 
@@ -47,11 +47,9 @@ namespace MutinyBot
                 .AddSingleton(this)
                 .AddSingleton(Config)
                 .AddSingleton<Random>()
-                .AddSingleton<PetService>()
                 .AddSingleton<UserService>()
                 .AddSingleton<GuildService>()
                 .AddSingleton<MemberService>()
-                .AddSingleton<ImgurService>()
                 .AddDbContext<MutinyBotDbContext>()
                 .BuildServiceProvider();
 
@@ -155,9 +153,6 @@ namespace MutinyBot
 
                 if (!Config.Debug) //removing the debug/test slash module if it's not required
                     modules.Remove(typeof(DebugSlashModule));
-
-                //if(String.IsNullOrEmpty(Config.Imgur.ClientId))
-                    //modules.Remove(typeof());
 
                 var guilds = Config.Discord.AuthorizedServerIds.ToList(); // list of all of the guilds to register slash commands for
                 if (Config.Discord.MutinyGuildId != 0)

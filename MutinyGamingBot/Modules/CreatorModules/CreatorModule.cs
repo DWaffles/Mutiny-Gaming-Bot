@@ -41,7 +41,6 @@ namespace MutinyBot.Modules
             }
             await ctx.RespondAsync(message);
         }
-        //PETOWNERS
     }
     [Group("debug"), Aliases("d")]
     [Description("Debug commands."), Hidden, RequireOwner]

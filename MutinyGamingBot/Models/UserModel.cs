@@ -16,18 +16,11 @@
         public bool IsBanned { get; set; }
 
         /// <summary>
-        /// Gets whether this can add pets to the bot.
-        /// </summary>
-        /// <remarks>This is more of a symbol of trust allowing users to add content to the bot.</remarks>
-        public bool IsPetOwner { get; set; }
-
-        /// <summary>
         /// Constructs a new instance of this model.
         /// </summary>
         public UserModel()
         {
             IsBanned = false;
-            IsPetOwner = false;
         }
     }
 }
