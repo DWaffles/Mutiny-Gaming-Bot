@@ -15,7 +15,7 @@ namespace MutinyBot.Modules
     public class UserNotBannedSlashAttribute : SlashCheckBaseAttribute
     {
         // InteractionContext instead of BaseContext for official D#+ slash command package.
-        public override async Task<bool> ExecuteChecksAsync(BaseContext ctx)
+        public override async Task<bool> ExecuteChecksAsync(InteractionContext ctx)
         {
             var userService = (UserService)ctx.Services.GetRequiredService(typeof(UserService));
             var user = await userService.GetOrCreateUserAsync(ctx.User.Id);

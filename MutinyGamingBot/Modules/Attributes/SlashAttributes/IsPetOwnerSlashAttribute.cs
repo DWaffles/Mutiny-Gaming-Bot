@@ -10,7 +10,7 @@ namespace MutinyBot.Modules
     /// </summary>
     public class IsPetOwnerSlashAttribute : SlashCheckBaseAttribute
     {
-        public override async Task<bool> ExecuteChecksAsync(BaseContext ctx)
+        public override async Task<bool> ExecuteChecksAsync(InteractionContext ctx)
         {
             var userService = (UserService)ctx.Services.GetRequiredService(typeof(UserService));
             var user = await userService.GetOrCreateUserAsync(ctx.User.Id);

@@ -30,7 +30,7 @@ namespace MutinyBot.Services
             var options = new RestClientOptions("https://api.imgur.com/3/")
             {
                 ThrowOnAnyError = true,
-                Timeout = 4000,
+                MaxTimeout = 4000,
             };
             RestClient = new RestClient(options);
         }

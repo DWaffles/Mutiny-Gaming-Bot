@@ -16,7 +16,8 @@ namespace MutinyBot
     {
         private void RegisterGatewayEvents()
         {
-            Client.Ready += OnReady;
+            Client.SessionCreated += OnSessionCreated;
+            Client.SessionResumed += OnSessionResumed;
             Client.ClientErrored += OnClientError;
 
             Client.MessageCreated += Client_MessageCreated;
@@ -31,7 +32,12 @@ namespace MutinyBot
         }
 
         #region EventHandlers
-        private Task OnReady(DiscordClient client, ReadyEventArgs e)
+        private Task OnSessionCreated(DiscordClient client, SessionReadyEventArgs e)
+        {
+            Log.Logger.Information("[CLIENT] Client is ready to process events.");
+            return Task.CompletedTask;
+        }
+        private Task OnSessionResumed(DiscordClient client, SessionReadyEventArgs e)
         {
             Log.Logger.Information("[CLIENT] Client is ready to process events.");
             return Task.CompletedTask;
