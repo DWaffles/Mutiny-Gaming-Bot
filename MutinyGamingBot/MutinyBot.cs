@@ -96,7 +96,6 @@ namespace MutinyBot
                 ButtonBehavior = ButtonPaginationBehavior.Disable,
 
                 ResponseBehavior = InteractionResponseBehavior.Ack,
-                AckPaginationButtons = true,
 
                 PaginationButtons = new PaginationButtons()
                 {
@@ -170,21 +169,6 @@ namespace MutinyBot
                     guilds.ForEach(guild => SlashCommands.RegisterCommands(type, guild));
                 }
             }
-        }
-        private static Task RunTaskAsync(Task task, [CallerMemberName] string parentCall = "unknown")
-        {
-            Task.Run(async () =>
-            {
-                try
-                {
-                    await task;
-                }
-                catch (Exception e)
-                {
-                    Log.Logger.Error(e, $"Exception occured in offloaded function from {parentCall}");
-                }
-            });
-            return task;
         }
         private MutinyBot() { }
     }

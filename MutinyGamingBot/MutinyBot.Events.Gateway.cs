@@ -47,46 +47,40 @@ namespace MutinyBot
             Log.Logger.Error(e.Exception, "[CLIENT] Exception occured");
             return Task.CompletedTask;
         }
-        private Task Client_MessageCreated(DiscordClient client, MessageCreateEventArgs e)
+        private async Task Client_MessageCreated(DiscordClient client, MessageCreateEventArgs e)
         {
             if (e.Guild != null)
-                RunTaskAsync(MemberMessageAsync(e.Guild, e.Message));
-            return Task.CompletedTask;
+                await MemberMessageAsync(e.Guild, e.Message);
         }
         private Task OnGuildsCompleted(DiscordClient client, GuildDownloadCompletedEventArgs e)
         {
             Log.Logger.Information("[GUILD] Guild download completed.");
             return Task.CompletedTask;
         }
-        private Task OnGuildAvailable(DiscordClient client, GuildCreateEventArgs e)
+        private async Task OnGuildAvailable(DiscordClient client, GuildCreateEventArgs e)
         {
             Log.Logger.Information($"[GUILD] Guild available: {e.Guild.Name}. ID: {e.Guild.Id}.");
-            RunTaskAsync(CreateOrUpdateGuildAsync(e.Guild));
-            return Task.CompletedTask;
+            await CreateOrUpdateGuildAsync(e.Guild);
         }
-        private Task OnGuildJoined(DiscordClient client, GuildCreateEventArgs e)
+        private async Task OnGuildJoined(DiscordClient client, GuildCreateEventArgs e)
         {
             Log.Logger.Information($"[GUILD] Guild joined: {e.Guild.Name}. ID: {e.Guild.Id}");
-            RunTaskAsync(CreateOrUpdateGuildAsync(e.Guild));
-            return Task.CompletedTask;
+            await CreateOrUpdateGuildAsync(e.Guild);
         }
-        private Task OnGuildMemberUpdated(DiscordClient client, GuildMemberUpdateEventArgs e)
+        private async Task OnGuildMemberUpdated(DiscordClient client, GuildMemberUpdateEventArgs e)
         {
             Log.Logger.Information($"[MEMBER] Member updated in: {e.Guild.Name}. ID: {e.Guild.Id}");
-            RunTaskAsync(MemberUpdatedAsync(e.Member));
-            return Task.CompletedTask;
+            await MemberUpdatedAsync(e.Member);
         }
-        private Task OnGuildMemberAdded(DiscordClient client, GuildMemberAddEventArgs e)
+        private async Task OnGuildMemberAdded(DiscordClient client, GuildMemberAddEventArgs e)
         {
             Log.Logger.Information($"[MEMBER] Member joined in: {e.Guild.Name}. ID: {e.Guild.Id}");
-            RunTaskAsync(MemberJoinedAsync(e.Guild, e.Member));
-            return Task.CompletedTask;
+            await MemberJoinedAsync(e.Guild, e.Member);
         }
-        private Task OnGuildMemberRemoved(DiscordClient client, GuildMemberRemoveEventArgs e)
+        private async Task OnGuildMemberRemoved(DiscordClient client, GuildMemberRemoveEventArgs e)
         {
             Log.Logger.Information($"[MEMBER] Member removed in: {e.Guild.Name}. ID: {e.Guild.Id}");
-            RunTaskAsync(MemberRemovedAsync(e.Member));
-            return Task.CompletedTask;
+            await MemberRemovedAsync(e.Member);
         }
         #endregion
 
