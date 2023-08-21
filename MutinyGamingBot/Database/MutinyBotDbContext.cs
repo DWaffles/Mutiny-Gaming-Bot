@@ -18,6 +18,14 @@ namespace MutinyBot.Database
         public DbSet<MemberModel> Members { get; set; }
         private static ILoggerFactory LoggerFactory => new LoggerFactory().AddSerilog();
         public MutinyBotDbContext() { }
+
+        /// <summary>
+        /// Applies pending database migrations to the current database, and will create one if it does not already exist.
+        /// </summary>
+        /// <remarks>
+        /// Reference <see href="https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/?tabs=vs">Database migrations</see> for information.
+        /// </remarks>
+        /// 
         public void ApplyMigrations()
         {
             if (Database.GetPendingMigrations().Any())
@@ -30,7 +38,7 @@ namespace MutinyBot.Database
             }
             else
             {
-                Log.Information($"No pending migrations, database is up to date.");
+                Log.Information($"[DATABASE] No pending migrations, database is up to date.");
             }
         }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

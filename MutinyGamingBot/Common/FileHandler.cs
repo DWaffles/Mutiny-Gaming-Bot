@@ -30,10 +30,10 @@ namespace MutinyBot.Common
         }
 
         /// <summary>
-        /// Does a cursory check of a <see cref="MutinyBotConfig"/> to see if it a valid config.
+        /// Verifies if a <see cref="MutinyBotConfig"/> is a valid config.
         /// </summary>
         /// <remarks>
-        /// Only checks if the token is null, empty, or equal to token, and if there is at least one prefix.
+        /// Checks if the token is: null, empty, or 'token'. Checks if there is at least one non-whitespace prefix.
         /// </remarks>
         /// <param name="config">Config to check validity for.</param>
         /// <returns><see cref="bool"/></returns>
@@ -41,7 +41,8 @@ namespace MutinyBot.Common
         {
             return !(String.IsNullOrEmpty(config?.Discord?.Token)
                 || config.Discord.Token.Equals("token", StringComparison.OrdinalIgnoreCase)
-                || config.Discord.CommandPrefixes.Length == 0);
+                || config.Discord.CommandPrefixes.Length == 0
+                || string.IsNullOrWhiteSpace(config.Discord.CommandPrefixes[0]));
         }
 
         /// <summary>

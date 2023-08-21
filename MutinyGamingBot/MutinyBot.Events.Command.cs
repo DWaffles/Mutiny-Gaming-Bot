@@ -155,14 +155,14 @@ namespace MutinyBot
                     embed.Description = $"One or more command prechecks have failed:\n • {String.Join("\n • ", failedChecks)}";
                     break;
                 case DSharpPlus.Exceptions.BadRequestException badrq:
-                    Log.Logger.Error(e.Exception, $"[COMMAND] {e.Context.User.Username} tried executing '{e.Context.CommandName}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}");
+                    Log.Logger.Error(e.Exception, $"[COMMAND] {e.Context.User.Username} ({e.Context.User.Id}) tried executing '{e.Context.CommandName}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}");
                     embed.WithTitle("Error: Bad Request");
                     embed.Description = $"Command interaction resulted in a bad request. This is likely an internal error.";
                     embed.AddField("Exception Type", e.Exception.GetType().ToString());
                     embed.WithFooter(DateTime.Now.ToString("HH:mm:ss"));
                     break;
                 default:
-                    Log.Logger.Error(e.Exception, $"[COMMAND] {e.Context.User.Username} tried executing '{e.Context.CommandName}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}");
+                    Log.Logger.Error(e.Exception, $"[COMMAND] {e.Context.User.Username} ({e.Context.User.Id}) tried executing '{e.Context.CommandName}' but it errored: {e.Exception.GetType()}: {e.Exception.Message ?? "<no message>"}");
                     embed.Title = "Error";
                     embed.Description = $"Error occured during command interaction, please report this to the developer.";
                     embed.AddField("Exception Type", e.Exception.GetType().ToString());

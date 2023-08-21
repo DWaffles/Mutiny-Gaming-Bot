@@ -14,6 +14,7 @@ using MutinyBot.Modules;
 using MutinyBot.Services;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -64,7 +65,7 @@ namespace MutinyBot
                 AutoReconnect = true,
                 LoggerFactory = logFactory,
                 MinimumLogLevel = LogLevel.Trace,
-                /*ReconnectIndefinitely = true,*/
+                ReconnectIndefinitely =  Config.ReconnectIndefinitely,
 
                 Intents = DiscordIntents.Guilds
                 | DiscordIntents.GuildMessages
@@ -72,6 +73,7 @@ namespace MutinyBot
                 | DiscordIntents.GuildMembers
                 | DiscordIntents.DirectMessages
                 | DiscordIntents.DirectMessageReactions
+                | DiscordIntents.MessageContents
             });
 
             Commands = Client.UseCommandsNext(new CommandsNextConfiguration()
@@ -111,7 +113,9 @@ namespace MutinyBot
         }
         public async Task ConnectAsync()
         {
-            var activity = new DiscordActivity(Config.Discord.BotStatus ?? $"[{string.Join(", ", Config.Discord.CommandPrefixes)}]help", ActivityType.Playing);
+            var status = Config.Discord.BotStatus ?? GetCommandPrefixes()[0] + "help"; // VerifyConfig() enforces at least 1 non-whitespace prefix.
+            var activity = new DiscordActivity(status, ActivityType.Playing);
+
             try
             {
                 await Client.ConnectAsync(activity);
@@ -134,9 +138,6 @@ namespace MutinyBot
         {
             using var context = new MutinyBotDbContext();
             context.ApplyMigrations();
-
-            /*var mediaService = (ImageService)Services.GetRequiredService(typeof(ImageService));
-            mediaService.ConfigureMediaService(Path.Combine("data"));*/
         }
         private void RegisterCommands()
         {
@@ -158,7 +159,7 @@ namespace MutinyBot
                 if (Config.Discord.MutinyGuildId != 0)
                     guilds.Add(Config.Discord.MutinyGuildId);
 
-                Log.Logger.Information($"Registering ({String.Join(", ", modules.Select(type => type.Name))}) slash modules in following guilds: {String.Join(", ", Config.Discord.AuthorizedServerIds)}");
+                Log.Logger.Information($"[COMMANDS] Registering ({String.Join(", ", modules.Select(type => type.Name))}) slash modules in following guilds: {String.Join(", ", Config.Discord.AuthorizedServerIds)}");
                 foreach (Type type in modules)
                 {
                     guilds.ForEach(guild => SlashCommands.RegisterCommands(type, guild));

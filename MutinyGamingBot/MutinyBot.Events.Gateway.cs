@@ -44,11 +44,13 @@ namespace MutinyBot
         }
         private Task OnClientError(DiscordClient client, ClientErrorEventArgs e)
         {
-            Log.Logger.Error(e.Exception, "[CLIENT] Exception occured");
+            Log.Logger.Error(e.Exception, "[CLIENT] Exception occured.");
             return Task.CompletedTask;
         }
         private async Task Client_MessageCreated(DiscordClient client, MessageCreateEventArgs e)
         {
+            if (Config.Debug)
+                Log.Debug("[CLIENT] DirectMessage Recieved.");
             if (e.Guild != null)
                 await MemberMessageAsync(e.Guild, e.Message);
         }
@@ -64,7 +66,7 @@ namespace MutinyBot
         }
         private async Task OnGuildJoined(DiscordClient client, GuildCreateEventArgs e)
         {
-            Log.Logger.Information($"[GUILD] Guild joined: {e.Guild.Name}. ID: {e.Guild.Id}");
+            Log.Logger.Information($"[GUILD] Guild joined: {e.Guild.Name}. ID: {e.Guild.Id}.");
             await CreateOrUpdateGuildAsync(e.Guild);
         }
         private async Task OnGuildMemberUpdated(DiscordClient client, GuildMemberUpdateEventArgs e)
@@ -87,6 +89,8 @@ namespace MutinyBot
         #region OffloadFunctions
         private async Task CreateOrUpdateGuildAsync(DiscordGuild guild)
         {
+            Log.Debug($"[CLIENT] Updating db entry for: {guild.Name} ({guild.Id})");
+
             var guildService = (GuildService)Services.GetRequiredService(typeof(GuildService));
 
             var guildTask = guildService.GetOrCreateGuildAsync(guild);
