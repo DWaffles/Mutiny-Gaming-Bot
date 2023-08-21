@@ -2,8 +2,9 @@
     <img src="https://i.imgur.com/Dexdv76.png" alt="Mutiny-Gaming-Bot" width="150" height="150">
 </p>
 <p align="center">
-    <img alt="GitHub Workflow Status" src="https://img.shields.io/github/workflow/status/DWaffles/Mutiny-Gaming-Bot/.NET">
-	<img alt="Lines of code" src="https://img.shields.io/tokei/lines/github/dwaffles/mutiny-gaming-bot">
+    <img alt="GitHub Workflow Status" src="https://github.com/DWaffles/Mutiny-Gaming-Bot/actions/workflows/dotnet.yml/badge.svg">
+	<img alt="GitHub Repo Size" src="https://img.shields.io/github/repo-size/DWaffles/Mutiny-Gaming-Bot">
+	<img alt="License" src="https://img.shields.io/github/license/DWaffles/Mutiny-Gaming-Bot">
     <h1 align="center">Mutiny-Gaming-Bot</h1>
 </p>
 
@@ -18,7 +19,6 @@ MGBot is still under development as core features have not been fully implemente
 
 - [DSharpPlus](https://github.com/DSharpPlus/DSharpPlus/)
 - [Humanizer](https://github.com/Humanizr/Humanizer)
-- [Kuylar.DSharpPlus.SlashCommands](https://github.com/kuylar/DSharpPlus.SlashCommands)
 - [Microsoft Entity Framework Core](https://docs.microsoft.com/en-us/ef/)
 - [Newtonsoft.Json](https://www.newtonsoft.com/json)
 - [Serilog](https://serilog.net/)
